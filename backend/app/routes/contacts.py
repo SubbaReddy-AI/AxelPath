@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.database.connection import get_db
 from app.models.contact_message import ContactMessage
 from app.utils.dependencies import get_current_admin
-
+from app.excel.exporter import export_all_data
 
 router = APIRouter(
     prefix="/contacts",
@@ -15,7 +15,6 @@ router = APIRouter(
 # ============================================================
 # ADMIN - GET CONTACT MESSAGES
 # ============================================================
-
 @router.get("")
 def get_contacts(
     db: Session = Depends(get_db),
@@ -33,7 +32,6 @@ def get_contacts(
 # ============================================================
 # PUBLIC - CREATE CONTACT MESSAGE
 # ============================================================
-
 @router.post(
     "",
     status_code=status.HTTP_201_CREATED,
@@ -67,8 +65,7 @@ def create_contact(
             detail="Message is required.",
         )
 
-    # Create contact record using ONLY fields
-    # that actually exist in ContactMessage
+    # Create contact record
     contact = ContactMessage(
         name=name,
         email=email,
@@ -80,6 +77,12 @@ def create_contact(
     db.add(contact)
     db.commit()
     db.refresh(contact)
+
+    # Update Excel and Google Drive
+    try:
+     export_all_data(db)
+    except Exception as exc:
+     print(f"Excel/Google Drive export failed: {exc}")
 
     return {
         "success": True,

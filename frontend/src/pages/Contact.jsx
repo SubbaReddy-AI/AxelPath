@@ -51,7 +51,7 @@ export default function Contact() {
               <div className="contact-detail-list">
                 <a href="mailto:QodeKraft@gmail.com"><span><Mail size={18} /></span><div><small>Email</small><strong>QodeKraft@gmail.com</strong></div></a>
                 <a href="tel:+917013888297"><span><Phone size={18} /></span><div><small>Phone</small><strong>+91 70138 88297</strong></div></a>
-                <div><span><MapPin size={18} /></span><div><small>Location</small><strong>Hyderabad, Telangana, India</strong></div></div>
+                <div><span><MapPin size={18} /></span><div><small>Location</small><strong>Tirupathi, Andhra Pradesh, India</strong></div></div>
                 <div><span><Clock3 size={18} /></span><div><small>Response</small><strong>We aim to respond within 1–2 business days.</strong></div></div>
               </div>
               <div className="contact-side-note"><CheckCircle2 size={18} /><span>Your details are used only to handle your enquiry and follow-up.</span></div>
