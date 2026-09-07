@@ -26,8 +26,8 @@ class Settings(BaseSettings):
     # ============================================================
     # FRONTEND / ADMIN
     # ============================================================
-
-    FRONTEND_URL: str = "https://qodekraft.vercel.app"
+    FRONTEND_URL: str = "https://www.qodekraft.in"
+    OLD_FRONTEND_URL: str = "https://qodekraft.vercel.app"
     ADMIN_URL: str = "https://qode-kraft.vercel.app"
 
     # ============================================================

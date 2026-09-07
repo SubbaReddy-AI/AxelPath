@@ -58,6 +58,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://qode-kraft.vercel.app",
+        "https://www.qodekraft.in",
+        "https://qodekraft.in",
         "https://qodekraft.vercel.app",
     ],
     allow_credentials=True,

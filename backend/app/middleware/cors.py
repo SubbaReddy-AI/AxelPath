@@ -8,6 +8,7 @@ def setup_cors(app: FastAPI):
 
     origins = [
         settings.FRONTEND_URL,
+        settings.OLD_FRONTEND_URL,
         settings.ADMIN_URL
     ]
 
