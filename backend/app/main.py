@@ -8,7 +8,7 @@ from app.config import settings
 from app.database.base import Base
 from app.database.connection import engine
 
-# Import models so SQLAlchemy registers all tables (including new ones)
+# Import models so SQLAlchemy registers all tables
 import app.models  # noqa: F401
 
 from app.routes import (
@@ -43,9 +43,10 @@ app = FastAPI(
 
 
 # ============================================================
-# DATABASE — create tables (safe: will not drop existing data)
+# DATABASE
 # ============================================================
-
+# Creates missing tables without deleting existing data.
+# NOTE: create_all() does NOT modify existing table columns.
 Base.metadata.create_all(bind=engine)
 
 
@@ -53,18 +54,24 @@ Base.metadata.create_all(bind=engine)
 # CORS
 # ============================================================
 
+ALLOWED_ORIGINS = [
+    settings.FRONTEND_URL,
+    settings.OLD_FRONTEND_URL,
+    settings.ADMIN_URL,
+    settings.LEGACY_FRONTEND_URL,
+    settings.LEGACY_WWW_FRONTEND_URL,
+    settings.LOCAL_FRONTEND_URL,
+]
+
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://www.axelpath.in",
-        "https://axelpath.vercel.app",
-        "https://axelpath-git-main-rag-air-esume.vercel.app",
-        "http://localhost:5173",
-    ],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # ============================================================
 # API PREFIX
@@ -99,7 +106,11 @@ app.include_router(certificates_router, prefix=API)
 # ============================================================
 
 upload_directory = Path(settings.UPLOAD_DIR)
-upload_directory.mkdir(parents=True, exist_ok=True)
+
+upload_directory.mkdir(
+    parents=True,
+    exist_ok=True,
+)
 
 app.mount(
     "/uploads",
@@ -127,4 +138,6 @@ def root():
 
 @app.get("/health")
 def health():
-    return {"status": "healthy"}
+    return {
+        "status": "healthy",
+    }
