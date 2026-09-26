@@ -77,12 +77,12 @@ services:
       # EMAIL
       SMTP_HOST: "smtp.gmail.com"
       SMTP_PORT: "587"
-      SMTP_USERNAME: "AxelPath@gmail.com"
+      SMTP_USERNAME: "axelpathofficial@gmail.com"
       SMTP_PASSWORD: "qhqqjwrbewmtnrgy"
-      EMAIL_FROM: "AxelPath@gmail.com"
+      EMAIL_FROM: "axelpathofficial@gmail.com"
 
       # ADMIN
-      ADMIN_EMAIL: "AxelPath@gmail.com"
+      ADMIN_EMAIL: "axelpathofficial@gmail.com"
       ADMIN_PASSWORD: "Ahemanth@143"
 
       # RAZORPAY

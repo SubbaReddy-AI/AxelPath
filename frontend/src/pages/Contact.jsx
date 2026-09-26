@@ -49,7 +49,7 @@ export default function Contact() {
             <aside className="contact-sidebar">
               <div className="contact-side-card contact-side-highlight"><span className="section-eyebrow">START HERE</span><h2>Tell us what you need.</h2><p>A few clear details are enough. We will route your enquiry to the right conversation.</p></div>
               <div className="contact-detail-list">
-                <a href="mailto:AxelPath@gmail.com"><span><Mail size={18} /></span><div><small>Email</small><strong>AxelPath@gmail.com</strong></div></a>
+                <a href="mailto:axelpathofficial@gmail.com"><span><Mail size={18} /></span><div><small>Email</small><strong>axelpathofficial@gmail.com</strong></div></a>
                 <a href="tel:+917013888297"><span><Phone size={18} /></span><div><small>Phone</small><strong>+91 70138 88297</strong></div></a>
                 <div><span><MapPin size={18} /></span><div><small>Location</small><strong>Tirupathi, Andhra Pradesh, India</strong></div></div>
                 <div><span><Clock3 size={18} /></span><div><small>Response</small><strong>We aim to respond within 1–2 business days.</strong></div></div>
@@ -77,7 +77,7 @@ export default function Contact() {
         </Container>
       </section>
 
-      <section className="contact-next section"><Container><div className="contact-next-grid"><div><span className="section-eyebrow">NOT SURE WHERE TO START?</span><h2>That is okay. <span>We can start with a conversation.</span></h2></div><div><p>Whether you have a rough idea, an existing product that needs improvement, or simply want to understand which technology path fits your goal, send the context you have.</p><a href="mailto:AxelPath@gmail.com" className="text-link">Email the team <ArrowRight size={17} /></a></div></div></Container></section>
+      <section className="contact-next section"><Container><div className="contact-next-grid"><div><span className="section-eyebrow">NOT SURE WHERE TO START?</span><h2>That is okay. <span>We can start with a conversation.</span></h2></div><div><p>Whether you have a rough idea, an existing product that needs improvement, or simply want to understand which technology path fits your goal, send the context you have.</p><a href="mailto:axelpathofficial@gmail.com" className="text-link">Email the team <ArrowRight size={17} /></a></div></div></Container></section>
     </main>
   );
 }
