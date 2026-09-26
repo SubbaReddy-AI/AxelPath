@@ -1,21 +1,29 @@
 """
 AxelPath course registration routes.
 
-Flow
-----
-1. POST /course-registrations/init          — create DB record, return registration_id
-2. POST /agreements/accept                   — student accepts agreement (separate router)
-3. POST /course-registrations/create-order  — verify agreement → create Razorpay order
-4. POST /course-registrations/verify        — verify Razorpay signature → mark paid
-5. POST /course-registrations/webhook       — Razorpay webhook (idempotent)
+Payment flow
+------------
+1. POST /course-registrations/init         — create DB record, return registration_id
+2. POST /agreements/accept                  — student accepts agreement (separate router)
+3. POST /course-registrations/create-order — verify agreement → create Razorpay order
+4. POST /course-registrations/verify       — verify Razorpay signature → mark paid
+5. POST /course-registrations/webhook      — Razorpay webhook (idempotent backup path)
 
-Legacy endpoint
----------------
-POST /course-registrations/start            — kept for backward compatibility
+Legacy endpoint (backward-compat)
+----------------------------------
+POST /course-registrations/start           — kept for older frontends
+
+Security invariants (enforced server-side, never trusted from the client)
+--------------------------------------------------------------------------
+- Registration fee is FIXED at ₹8,550 / 855,000 paise.
+- Amount is validated against the Razorpay API response after capture.
+- HMAC-SHA256 signature is verified before any payment is accepted.
+- UTR uniqueness is enforced at DB level (unique index) and application level.
+- Webhook signatures are verified with RAZORPAY_WEBHOOK_SECRET.
+- All Razorpay credentials come exclusively from environment variables.
 """
 
-import hashlib
-import hmac
+import json
 import logging
 from datetime import datetime
 from uuid import uuid4
@@ -46,6 +54,7 @@ from app.services.razorpay_service import (
     fetch_payment,
     payment_reference_values,
     verify_signature,
+    verify_webhook_signature,
 )
 from app.excel.exporter import export_all_data
 
@@ -53,12 +62,16 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/course-registrations", tags=["Course Registrations"])
 
-# ──────────────────────────────────────────────────
-# Fixed fee — server-side only; NEVER trust frontend
-# ──────────────────────────────────────────────────
-COURSE_REGISTRATION_FEE_RUPEES = 8550          # ₹8,550
-COURSE_REGISTRATION_FEE_PAISE = 855_000        # 855,000 paise
+# ──────────────────────────────────────────────────────────────────────────────
+# Fixed fee — server-side only; NEVER trust the frontend amount
+# ──────────────────────────────────────────────────────────────────────────────
+COURSE_REGISTRATION_FEE_RUPEES = 8550      # ₹8,550
+COURSE_REGISTRATION_FEE_PAISE  = 855_000   # 855,000 paise
 
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Helpers
+# ──────────────────────────────────────────────────────────────────────────────
 
 def _make_registration_id() -> str:
     return f"APREG-{datetime.utcnow().year}-{uuid4().hex[:8].upper()}"
@@ -68,7 +81,7 @@ def _get_active_course(db: Session, course_slug: str) -> Course:
     course = (
         db.query(Course)
         .filter(
-            Course.is_active == True,
+            Course.is_active == True,  # noqa: E712
             (Course.slug == course_slug) | (Course.title == course_slug),
         )
         .first()
@@ -107,9 +120,44 @@ AxelPath Team
     return subject, body
 
 
-# ══════════════════════════════════════════════════
+def _mark_paid(
+    db: Session,
+    registration: CourseRegistration,
+    payment_id: str,
+    signature: str | None,
+    utr: str | None,
+) -> None:
+    """
+    Write the 'paid' state to the database inside a transaction.
+
+    Raises HTTPException 409 on IntegrityError (duplicate payment_id / UTR).
+    """
+    now = datetime.utcnow()
+    registration.razorpay_payment_id = payment_id
+    registration.razorpay_signature = signature
+    registration.utr = utr
+    registration.payment_status = "paid"
+    registration.enrollment_status = "active"
+    registration.paid_at = now
+
+    try:
+        db.commit()
+    except IntegrityError as exc:
+        db.rollback()
+        logger.error(
+            "DB IntegrityError marking %s as paid: %s",
+            registration.registration_id,
+            exc,
+        )
+        raise HTTPException(
+            status_code=409,
+            detail="This payment or UTR has already been registered.",
+        ) from exc
+
+
+# ──────────────────────────────────────────────────────────────────────────────
 # STEP 1 — Init registration (no Razorpay order yet)
-# ══════════════════════════════════════════════════
+# ──────────────────────────────────────────────────────────────────────────────
 
 @router.post(
     "/init",
@@ -121,12 +169,16 @@ def init_registration(
     db: Session = Depends(get_db),
 ):
     """
-    Create a course registration record.
-    No Razorpay order is created yet — the student must accept the agreement first.
+    Create a course registration record (Step 1).
+
+    No Razorpay order is created yet — the student must read and accept the
+    AxelPath agreement before proceeding to payment.
+
+    Returns a registration_id that identifies the record throughout the flow.
     """
     course = _get_active_course(db, payload.course_slug)
 
-    # Check if this student already has a successful registration for this course
+    # Prevent duplicate successful enrollments for the same email + course
     existing_paid = (
         db.query(CourseRegistration)
         .filter(
@@ -164,6 +216,12 @@ def init_registration(
     db.add(registration)
     db.commit()
 
+    logger.info(
+        "Registration created | registration_id=%s course=%s",
+        registration_id,
+        course.slug,
+    )
+
     return RegistrationInitResponse(
         registration_id=registration_id,
         course_title=course.title,
@@ -171,9 +229,9 @@ def init_registration(
     )
 
 
-# ══════════════════════════════════════════════════
-# STEP 3 — Create Razorpay order (after agreement)
-# ══════════════════════════════════════════════════
+# ──────────────────────────────────────────────────────────────────────────────
+# STEP 3 — Create Razorpay order (after agreement accepted)
+# ──────────────────────────────────────────────────────────────────────────────
 
 @router.post(
     "/create-order",
@@ -184,14 +242,16 @@ def create_payment_order(
     db: Session = Depends(get_db),
 ):
     """
-    Create a Razorpay order for an existing registration.
+    Create a Razorpay order for an existing registration (Step 3).
 
-    Prerequisites (all checked server-side):
+    Prerequisites enforced server-side:
       - Registration must exist.
-      - Agreement must have been accepted and recorded in MySQL.
-      - No successful payment must already exist.
+      - Agreement must have been accepted (checked in agreement_acceptances table).
+      - No successful payment may already exist.
 
-    The payment amount is FIXED server-side. No amount is returned to the frontend.
+    The payment amount is FIXED at ₹8,550 server-side.
+    The amount is NOT returned in this response — Razorpay Checkout reads it
+    from the order object directly via the order_id.
     """
     registration = (
         db.query(CourseRegistration)
@@ -201,7 +261,7 @@ def create_payment_order(
     if not registration:
         raise HTTPException(status_code=404, detail="Registration not found.")
 
-    # Guard: already paid — do not create a new order
+    # Guard: already paid
     if registration.payment_status == "paid":
         raise HTTPException(
             status_code=409,
@@ -211,14 +271,16 @@ def create_payment_order(
             ),
         )
 
-    # Guard: agreement must be accepted (checked from both the registration row
-    # and the dedicated agreement_acceptances table)
+    # Guard: agreement must be accepted
+    # Check both the denormalised flag on the registration row AND the
+    # authoritative agreement_acceptances table so that a network race
+    # between /agreements/accept and /create-order is handled correctly.
     if not registration.agreement_accepted:
         acceptance = (
             db.query(AgreementAcceptance)
             .filter(
                 AgreementAcceptance.registration_id == payload.registration_id,
-                AgreementAcceptance.agreement_accepted == True,
+                AgreementAcceptance.agreement_accepted == True,  # noqa: E712
             )
             .first()
         )
@@ -230,15 +292,20 @@ def create_payment_order(
                     "Please read and accept the AxelPath agreement before paying."
                 ),
             )
-        # Sync denormalised column
+        # Sync the denormalised flag so future requests skip this lookup
         registration.agreement_accepted = True
         registration.agreement_version = acceptance.agreement_version
 
-    # If a Razorpay order already exists and is not yet paid, reuse it
+    # Reuse an existing open order (idempotent re-submission)
     if (
         registration.razorpay_order_id
         and registration.payment_status in ("order_created", "agreement_accepted")
     ):
+        logger.info(
+            "Reusing existing Razorpay order | registration_id=%s order_id=%s",
+            registration.registration_id,
+            registration.razorpay_order_id,
+        )
         return CreateOrderResponse(
             registration_id=registration.registration_id,
             course_title=registration.course_title,
@@ -247,7 +314,7 @@ def create_payment_order(
             razorpay_key_id=settings.RAZORPAY_KEY_ID,
         )
 
-    # Create Razorpay order — amount is ALWAYS server-side fixed
+    # Create a new Razorpay order — amount is ALWAYS the server-side constant
     try:
         order = create_order(
             amount_rupees=COURSE_REGISTRATION_FEE_RUPEES,
@@ -258,6 +325,13 @@ def create_payment_order(
                 "agreement_version": AGREEMENT_VERSION_V1,
             },
         )
+    except RuntimeError as exc:
+        # Credentials not configured
+        logger.error("Razorpay credentials missing: %s", exc)
+        raise HTTPException(
+            status_code=503,
+            detail="Payment service is not configured. Please contact support.",
+        ) from exc
     except Exception as exc:
         logger.error("Razorpay order creation failed: %s", exc)
         raise HTTPException(
@@ -278,9 +352,9 @@ def create_payment_order(
     )
 
 
-# ══════════════════════════════════════════════════
+# ──────────────────────────────────────────────────────────────────────────────
 # STEP 4 — Verify Razorpay payment
-# ══════════════════════════════════════════════════
+# ──────────────────────────────────────────────────────────────────────────────
 
 @router.post(
     "/verify",
@@ -291,11 +365,17 @@ def verify_registration_payment(
     db: Session = Depends(get_db),
 ):
     """
-    Verify Razorpay payment cryptographically. Only marks SUCCESS after:
-      1. HMAC-SHA256 signature matches.
-      2. Razorpay API confirms payment is captured.
-      3. Amount matches server-side fixed amount.
-      4. UTR/reference is unique.
+    Verify a Razorpay payment and mark the registration as paid (Step 4).
+
+    Verification chain (all must pass):
+      1. Registration exists and belongs to this order.
+      2. UTR is provided, non-empty, and not already used.
+      3. HMAC-SHA256 signature matches (key_secret × order_id|payment_id).
+      4. Razorpay API confirms payment is captured.
+      5. Razorpay API confirms amount = 855,000 paise (₹8,550).
+      6. UTR matches a reference value returned by Razorpay (when available).
+
+    Idempotent: returns success immediately if already paid.
     """
     registration = (
         db.query(CourseRegistration)
@@ -305,7 +385,7 @@ def verify_registration_payment(
     if not registration:
         raise HTTPException(status_code=404, detail="Registration not found.")
 
-    # Idempotent: already paid
+    # Idempotent: already paid — return success without re-processing
     if registration.payment_status == "paid":
         return RegistrationSuccessResponse(
             success=True,
@@ -315,12 +395,14 @@ def verify_registration_payment(
             message="Registration is already confirmed.",
         )
 
+    # 1. Order cross-check
     if payload.razorpay_order_id != registration.razorpay_order_id:
         raise HTTPException(
             status_code=400,
             detail="Payment order does not match this registration.",
         )
 
+    # 2. UTR presence and uniqueness
     normalized_utr = payload.utr.strip().upper()
     if not normalized_utr:
         raise HTTPException(
@@ -328,7 +410,6 @@ def verify_registration_payment(
             detail="Please enter the UTR / transaction reference number.",
         )
 
-    # Duplicate UTR check
     duplicate = (
         db.query(CourseRegistration)
         .filter(
@@ -343,8 +424,9 @@ def verify_registration_payment(
             detail="This UTR has already been used for another registration.",
         )
 
-    # Cryptographic signature verification
+    # 3 + 4 + 5 + 6 — Signature, fetch, amount, and UTR cross-check
     try:
+        # 3. HMAC-SHA256 signature verification
         if not verify_signature(
             registration.razorpay_order_id,
             payload.razorpay_payment_id,
@@ -354,34 +436,59 @@ def verify_registration_payment(
                 status_code=400,
                 detail="Payment signature verification failed.",
             )
+
+        # 4. Fetch payment details from Razorpay API
         payment = fetch_payment(payload.razorpay_payment_id)
+
     except HTTPException:
         raise
+    except RuntimeError as exc:
+        # Credentials not configured
+        logger.error("Razorpay credentials missing during verify: %s", exc)
+        raise HTTPException(
+            status_code=503,
+            detail="Payment service is not configured. Please contact support.",
+        ) from exc
     except Exception as exc:
+        logger.error("Razorpay verification error: %s", exc)
         raise HTTPException(
             status_code=502,
             detail="Razorpay payment verification is temporarily unavailable.",
         ) from exc
 
+    # 4b. Payment must belong to this order (cross-check via Razorpay API)
     if payment.get("order_id") != registration.razorpay_order_id:
         raise HTTPException(
             status_code=400,
             detail="Payment is not linked to this registration order.",
         )
 
-    # Amount must match server-side fixed value (paise)
-    if int(payment.get("amount", 0)) != COURSE_REGISTRATION_FEE_PAISE:
+    # 5. Amount must match the server-side fixed value (paise)
+    try:
+        razorpay_amount = int(payment.get("amount", 0))
+    except (TypeError, ValueError):
+        razorpay_amount = 0
+
+    if razorpay_amount != COURSE_REGISTRATION_FEE_PAISE:
+        logger.error(
+            "Amount mismatch | registration_id=%s expected=%s got=%s",
+            registration.registration_id,
+            COURSE_REGISTRATION_FEE_PAISE,
+            razorpay_amount,
+        )
         raise HTTPException(
             status_code=400,
             detail="Payment amount does not match the programme fee.",
         )
 
+    # 5b. Payment status must be 'captured'
     if payment.get("status") != "captured" or not payment.get("captured"):
         raise HTTPException(
             status_code=400,
             detail="Payment is not captured yet. Please wait and try again.",
         )
 
+    # 6. UTR must match a reference Razorpay reports (when available)
     razorpay_refs = payment_reference_values(payment)
     if razorpay_refs and normalized_utr not in razorpay_refs:
         raise HTTPException(
@@ -389,31 +496,30 @@ def verify_registration_payment(
             detail="The UTR / transaction reference does not match the Razorpay payment.",
         )
 
-    # All checks passed — mark as paid
-    now = datetime.utcnow()
-    registration.razorpay_payment_id = payload.razorpay_payment_id
-    registration.razorpay_signature = payload.razorpay_signature
-    registration.utr = normalized_utr
-    registration.payment_status = "paid"
-    registration.enrollment_status = "active"
-    registration.paid_at = now
+    # All checks passed — persist paid state
+    _mark_paid(
+        db=db,
+        registration=registration,
+        payment_id=payload.razorpay_payment_id,
+        signature=payload.razorpay_signature,
+        utr=normalized_utr,
+    )
 
+    # Non-fatal post-commit side effects
     try:
-        db.commit()
-        try:
-            export_all_data(db)
-        except Exception as export_exc:
-            logger.warning("Excel export failed (non-fatal): %s", export_exc)
-    except IntegrityError as exc:
-        db.rollback()
-        raise HTTPException(
-            status_code=409,
-            detail="This payment or UTR has already been registered.",
-        ) from exc
+        export_all_data(db)
+    except Exception as export_exc:
+        logger.warning("Excel export failed (non-fatal): %s", export_exc)
 
-    # Send confirmation email only after verified payment
+    # Send confirmation email
     subject, body = _build_confirmation_email(registration)
     email_sent = send_email(registration.email, subject, body)
+
+    logger.info(
+        "Payment verified and confirmed | registration_id=%s payment_id=%s",
+        registration.registration_id,
+        payload.razorpay_payment_id,
+    )
 
     return RegistrationSuccessResponse(
         success=True,
@@ -431,39 +537,52 @@ def verify_registration_payment(
     )
 
 
-# ══════════════════════════════════════════════════
-# WEBHOOK — Razorpay webhook (idempotent)
-# ══════════════════════════════════════════════════
+# ──────────────────────────────────────────────────────────────────────────────
+# WEBHOOK — Razorpay webhook (idempotent backup confirmation path)
+# ──────────────────────────────────────────────────────────────────────────────
 
 @router.post("/webhook", include_in_schema=False)
 async def razorpay_webhook(request: Request, db: Session = Depends(get_db)):
     """
-    Razorpay webhook endpoint.
-    Verifies signature using RAZORPAY_WEBHOOK_SECRET and processes
-    payment.captured events idempotently.
+    Razorpay webhook endpoint (Step 5 — backup path).
+
+    The webhook fires independently of the browser session, so it acts as a
+    safety net when the student's browser closes before /verify completes.
+
+    Security:
+      - Webhook signature is verified with RAZORPAY_WEBHOOK_SECRET (not key_secret).
+      - Handler is idempotent: re-delivery of a captured event has no effect.
+      - Amount is validated server-side against the fixed ₹8,550 constant.
+      - razorpay_signature is NOT set by this path because Razorpay does not
+        include the payment signature in webhook payloads; only /verify sets it.
+
+    Configure this URL in the Razorpay Dashboard:
+      https://qodekraft.onrender.com/api/v1/course-registrations/webhook
+    Event to subscribe: payment.captured
     """
     raw_body = await request.body()
     signature = request.headers.get("X-Razorpay-Signature", "")
 
-    webhook_secret = getattr(settings, "RAZORPAY_WEBHOOK_SECRET", "")
-    if not webhook_secret:
-        logger.warning("RAZORPAY_WEBHOOK_SECRET not configured — webhook ignored.")
-        return {"status": "ignored", "reason": "webhook secret not configured"}
-
-    # Verify webhook signature
-    expected = hmac.new(
-        webhook_secret.encode(), raw_body, hashlib.sha256
-    ).hexdigest()
-    if not hmac.compare_digest(expected, signature):
+    # Verify webhook signature — reject unsigned / incorrectly signed requests
+    if not verify_webhook_signature(raw_body, signature):
+        webhook_secret = settings.RAZORPAY_WEBHOOK_SECRET.get_secret_value()
+        if not webhook_secret:
+            # Secret not yet configured — log and ignore rather than 400
+            # so that Razorpay does not disable the webhook for repeated failures
+            logger.warning(
+                "Webhook: RAZORPAY_WEBHOOK_SECRET not set — request ignored."
+            )
+            return {"status": "ignored", "reason": "webhook secret not configured"}
+        # Secret IS configured but signature did not match — reject
         raise HTTPException(status_code=400, detail="Webhook signature invalid.")
 
-    import json
     try:
         event_data = json.loads(raw_body)
-    except Exception:
+    except (json.JSONDecodeError, ValueError):
         raise HTTPException(status_code=400, detail="Invalid JSON payload.")
 
     event = event_data.get("event", "")
+    logger.info("Webhook: received event=%s", event)
 
     if event == "payment.captured":
         payment_entity = (
@@ -473,9 +592,15 @@ async def razorpay_webhook(request: Request, db: Session = Depends(get_db)):
         )
         payment_id = payment_entity.get("id")
         order_id = payment_entity.get("order_id")
-        captured_amount = int(payment_entity.get("amount", 0))
+
+        # Safely parse amount — Razorpay always sends paise as int, but guard anyway
+        try:
+            captured_amount = int(payment_entity.get("amount", 0))
+        except (TypeError, ValueError):
+            captured_amount = 0
 
         if not payment_id or not order_id:
+            logger.warning("Webhook: missing payment_id or order_id in payload")
             return {"status": "ignored", "reason": "missing payment or order id"}
 
         registration = (
@@ -485,48 +610,52 @@ async def razorpay_webhook(request: Request, db: Session = Depends(get_db)):
         )
 
         if not registration:
-            logger.info("Webhook: no registration found for order %s", order_id)
+            logger.info("Webhook: no registration found for order_id=%s", order_id)
             return {"status": "ignored", "reason": "registration not found"}
 
-        # Idempotent — already paid
+        # Idempotent — already processed by /verify or a previous webhook delivery
         if registration.payment_status == "paid":
+            logger.info(
+                "Webhook: already paid | registration_id=%s",
+                registration.registration_id,
+            )
             return {"status": "already_processed"}
 
-        # Amount guard
+        # Amount guard — reject if tampered
         if captured_amount != COURSE_REGISTRATION_FEE_PAISE:
             logger.error(
-                "Webhook: amount mismatch for order %s (got %s, expected %s)",
+                "Webhook: amount mismatch | order_id=%s expected=%s got=%s",
                 order_id,
-                captured_amount,
                 COURSE_REGISTRATION_FEE_PAISE,
+                captured_amount,
             )
             return {"status": "ignored", "reason": "amount mismatch"}
 
-        now = datetime.utcnow()
-        registration.razorpay_payment_id = payment_id
-        registration.payment_status = "paid"
-        registration.enrollment_status = "active"
-        registration.paid_at = now
+        # Mark paid — razorpay_signature is None here (not in webhook payload)
+        _mark_paid(
+            db=db,
+            registration=registration,
+            payment_id=payment_id,
+            signature=None,
+            utr=None,
+        )
 
-        try:
-            db.commit()
-        except IntegrityError:
-            db.rollback()
-            logger.warning("Webhook: IntegrityError for order %s — already processed", order_id)
-            return {"status": "already_processed"}
-
-        # Send email only once (razorpay_payment_id uniqueness prevents duplicates)
+        # Confirmation email
         subject, body = _build_confirmation_email(registration)
         send_email(registration.email, subject, body)
 
-        logger.info("Webhook: payment captured for %s", registration.registration_id)
+        logger.info(
+            "Webhook: payment captured | registration_id=%s payment_id=%s",
+            registration.registration_id,
+            payment_id,
+        )
 
     return {"status": "ok"}
 
 
-# ══════════════════════════════════════════════════
-# LEGACY — /start kept for backward compatibility
-# ══════════════════════════════════════════════════
+# ──────────────────────────────────────────────────────────────────────────────
+# LEGACY — /start kept for backward compatibility with older frontends
+# ──────────────────────────────────────────────────────────────────────────────
 
 @router.post(
     "/start",
@@ -539,11 +668,17 @@ def start_registration(
 ):
     """
     Legacy endpoint — creates registration + Razorpay order in one step.
-    Kept for backward compatibility. New frontend uses /init + /create-order.
+    New frontend uses /init → /agreements/accept → /create-order.
+
+    NOTE: If Razorpay order creation fails, this endpoint returns 502 without
+    persisting a DB row (order is created first to avoid orphaned records).
     """
     course = _get_active_course(db, payload.course_slug)
 
     registration_id = _make_registration_id()
+
+    # Create the Razorpay order BEFORE inserting the DB row so that a failure
+    # here does not leave an orphaned registration with no order.
     try:
         order = create_order(
             amount_rupees=COURSE_REGISTRATION_FEE_RUPEES,
@@ -553,7 +688,14 @@ def start_registration(
                 "course_slug": course.slug,
             },
         )
+    except RuntimeError as exc:
+        logger.error("Razorpay credentials missing (legacy /start): %s", exc)
+        raise HTTPException(
+            status_code=503,
+            detail="Payment service is not configured. Please contact support.",
+        ) from exc
     except Exception as exc:
+        logger.error("Razorpay order creation failed (legacy /start): %s", exc)
         raise HTTPException(
             status_code=502,
             detail="Unable to create the Razorpay payment order. Please try again.",

@@ -1,22 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.config import settings
+from app.config import ALLOWED_ORIGINS
 
 
 def setup_cors(app: FastAPI):
-
-    origins = [
-    settings.FRONTEND_URL,
-    settings.OLD_FRONTEND_URL,
-    "https://axelpath-git-main-rag-air-esume.vercel.app",
-    "http://localhost:5173",
-    settings.ADMIN_URL,
-]
-
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=origins,
+        allow_origins=ALLOWED_ORIGINS,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],

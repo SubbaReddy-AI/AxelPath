@@ -1,0 +1,100 @@
+warning: in the working copy of 'backend/app/routes/course_registrations.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/app/services/email_service.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/app/services/razorpay_service.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/app/utils/security.py', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/backend/app/routes/course_registrations.py b/backend/app/routes/course_registrations.py[m
+[1mindex bcfea32..b31d3a0 100644[m
+[1m--- a/backend/app/routes/course_registrations.py[m
+[1m+++ b/backend/app/routes/course_registrations.py[m
+[36m@@ -445,14 +445,16 @@[m [masync def razorpay_webhook(request: Request, db: Session = Depends(get_db)):[m
+     raw_body = await request.body()[m
+     signature = request.headers.get("X-Razorpay-Signature", "")[m
+ [m
+[31m-    webhook_secret = getattr(settings, "RAZORPAY_WEBHOOK_SECRET", "")[m
+[32m+[m[32m    webhook_secret = settings.RAZORPAY_WEBHOOK_SECRET.get_secret_value()[m
+     if not webhook_secret:[m
+         logger.warning("RAZORPAY_WEBHOOK_SECRET not configured — webhook ignored.")[m
+         return {"status": "ignored", "reason": "webhook secret not configured"}[m
+ [m
+     # Verify webhook signature[m
+     expected = hmac.new([m
+[31m-        webhook_secret.encode(), raw_body, hashlib.sha256[m
+[32m+[m[32m        webhook_secret.encode(),[m
+[32m+[m[32m        raw_body,[m
+[32m+[m[32m        digestmod=hashlib.sha256,[m
+     ).hexdigest()[m
+     if not hmac.compare_digest(expected, signature):[m
+         raise HTTPException(status_code=400, detail="Webhook signature invalid.")[m
+[1mdiff --git a/backend/app/services/email_service.py b/backend/app/services/email_service.py[m
+[1mindex c16762c..97193e9 100644[m
+[1m--- a/backend/app/services/email_service.py[m
+[1m+++ b/backend/app/services/email_service.py[m
+[36m@@ -13,6 +13,8 @@[m [mdef send_email([m
+     if not settings.SMTP_USERNAME:[m
+         return False[m
+ [m
+[32m+[m[32m    smtp_password = settings.SMTP_PASSWORD.get_secret_value()[m
+[32m+[m
+     message = EmailMessage()[m
+ [m
+     message["Subject"] = subject[m
+[36m@@ -31,7 +33,7 @@[m [mdef send_email([m
+ [m
+             smtp.login([m
+                 settings.SMTP_USERNAME,[m
+[31m-                settings.SMTP_PASSWORD[m
+[32m+[m[32m                smtp_password,[m
+             )[m
+ [m
+             smtp.send_message(message)[m
+[1mdiff --git a/backend/app/services/razorpay_service.py b/backend/app/services/razorpay_service.py[m
+[1mindex 2c6b393..4ae19ab 100644[m
+[1m--- a/backend/app/services/razorpay_service.py[m
+[1m+++ b/backend/app/services/razorpay_service.py[m
+[36m@@ -11,9 +11,11 @@[m [mRAZORPAY_BASE_URL = "https://api.razorpay.com/v1"[m
+ [m
+ [m
+ def _credentials() -> tuple[str, str]:[m
+[31m-    if not settings.RAZORPAY_KEY_ID or not settings.RAZORPAY_KEY_SECRET:[m
+[32m+[m[32m    key_id = settings.RAZORPAY_KEY_ID[m
+[32m+[m[32m    key_secret = settings.RAZORPAY_KEY_SECRET.get_secret_value()[m
+[32m+[m[32m    if not key_id or not key_secret:[m
+         raise RuntimeError("Razorpay credentials are not configured on the server.")[m
+[31m-    return settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET[m
+[32m+[m[32m    return key_id, key_secret[m
+ [m
+ [m
+ def create_order(amount_rupees: int, receipt: str, notes: dict[str, str]) -> dict[str, Any]:[m
+[36m@@ -50,7 +52,9 @@[m [mdef verify_signature(order_id: str, payment_id: str, signature: str) -> bool:[m
+     _, key_secret = _credentials()[m
+     message = f"{order_id}|{payment_id}".encode()[m
+     expected = hmac.new([m
+[31m-        key_secret.encode(), message, hashlib.sha256[m
+[32m+[m[32m        key_secret.encode(),[m
+[32m+[m[32m        message,[m
+[32m+[m[32m        digestmod=hashlib.sha256,[m
+     ).hexdigest()[m
+     return hmac.compare_digest(expected, signature)[m
+ [m
+[1mdiff --git a/backend/app/utils/security.py b/backend/app/utils/security.py[m
+[1mindex 864c6dd..3e329c5 100644[m
+[1m--- a/backend/app/utils/security.py[m
+[1m+++ b/backend/app/utils/security.py[m
+[36m@@ -45,7 +45,7 @@[m [mdef create_access_token([m
+ [m
+     return jwt.encode([m
+         payload,[m
+[31m-        settings.SECRET_KEY,[m
+[32m+[m[32m        settings.SECRET_KEY.get_secret_value(),[m
+         algorithm=ALGORITHM[m
+     )[m
+ [m
+[36m@@ -54,7 +54,7 @@[m [mdef decode_access_token(token: str):[m
+     try:[m
+         payload = jwt.decode([m
+             token,[m
+[31m-            settings.SECRET_KEY,[m
+[32m+[m[32m            settings.SECRET_KEY.get_secret_value(),[m
+             algorithms=[ALGORITHM][m
+         )[m
+ [m

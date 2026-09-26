@@ -34,7 +34,8 @@ class Settings(BaseSettings):
     # ============================================================
     # FRONTEND / ADMIN
     # ============================================================
-    FRONTEND_URL: str = "https://www.axelpath.in"
+    FRONTEND_URL: str = "https://www.axelpath.in"      # www variant
+    APEX_FRONTEND_URL: str = "https://axelpath.in"       # apex / naked domain
     OLD_FRONTEND_URL: str = "https://axelpath.vercel.app"
     ADMIN_URL: str = "https://axelpath-admin.vercel.app"
 
@@ -91,6 +92,7 @@ def _build_allowed_origins(s: "Settings") -> List[str]:
     """Single source of truth for CORS-allowed origins."""
     candidates = [
         s.FRONTEND_URL,
+        s.APEX_FRONTEND_URL,
         s.OLD_FRONTEND_URL,
         s.ADMIN_URL,
         s.LEGACY_FRONTEND_URL,

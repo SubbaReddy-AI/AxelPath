@@ -13,6 +13,8 @@ def send_email(
     if not settings.SMTP_USERNAME:
         return False
 
+    smtp_password = settings.SMTP_PASSWORD.get_secret_value()
+
     message = EmailMessage()
 
     message["Subject"] = subject
@@ -31,7 +33,7 @@ def send_email(
 
             smtp.login(
                 settings.SMTP_USERNAME,
-                settings.SMTP_PASSWORD
+                smtp_password,
             )
 
             smtp.send_message(message)

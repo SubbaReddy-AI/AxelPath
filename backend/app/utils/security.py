@@ -45,7 +45,7 @@ def create_access_token(
 
     return jwt.encode(
         payload,
-        settings.SECRET_KEY,
+        settings.SECRET_KEY.get_secret_value(),
         algorithm=ALGORITHM
     )
 
@@ -54,7 +54,7 @@ def decode_access_token(token: str):
     try:
         payload = jwt.decode(
             token,
-            settings.SECRET_KEY,
+            settings.SECRET_KEY.get_secret_value(),
             algorithms=[ALGORITHM]
         )
 

@@ -1,10 +1,11 @@
+import logging
 from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.config import settings
+from app.config import ALLOWED_ORIGINS, settings
 from app.database.base import Base
 from app.database.connection import engine
 from app.database.migrations import run_database_migrations
@@ -32,6 +33,9 @@ from app.routes import (
 from app.routes.certificates import router as certificates_router
 
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # ============================================================
 # APPLICATION
 # ============================================================
@@ -48,25 +52,21 @@ app = FastAPI(
 # ============================================================
 # Creates missing tables without deleting existing data.
 # NOTE: create_all() does NOT modify existing table columns.
+logger.info("Startup: running Base.metadata.create_all")
 Base.metadata.create_all(bind=engine)
 
-# Apply safe database schema migrations.
+# Apply safe, idempotent column-level schema migrations.
+logger.info("Startup: running database migrations")
 run_database_migrations()
 
 
 # ============================================================
 # CORS
 # ============================================================
-
-ALLOWED_ORIGINS = [
-    settings.FRONTEND_URL,
-    settings.OLD_FRONTEND_URL,
-    settings.ADMIN_URL,
-    settings.LEGACY_FRONTEND_URL,
-    settings.LEGACY_WWW_FRONTEND_URL,
-    settings.LOCAL_FRONTEND_URL,
-]
-
+# ALLOWED_ORIGINS is the single source of truth defined in config.py.
+# It covers: www.axelpath.in, axelpath.in, axelpath.vercel.app,
+#            axelpath-admin.vercel.app, legacy qodekraft domains,
+#            localhost:5173/5174, and the Vercel preview URL.
 
 app.add_middleware(
     CORSMiddleware,
