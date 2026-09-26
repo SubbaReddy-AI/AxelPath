@@ -2,7 +2,7 @@ import axios from "axios";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
-  "https://AxelPath.onrender.com/api/v1";
+  "https://qodekraft.onrender.com/api/v1";
 
 const adminApi = axios.create({
   baseURL: API_BASE_URL,

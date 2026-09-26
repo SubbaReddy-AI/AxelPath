@@ -1,6 +1,6 @@
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
-  "https://AxelPath.onrender.com/api/v1";
+ "https://qodekraft.onrender.com/api/v1";
 
 async function request(
   endpoint,

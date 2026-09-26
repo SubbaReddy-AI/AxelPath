@@ -57,9 +57,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://www.axelpath.in",
-        "https://axelpath.in",
         "https://axelpath.vercel.app",
-        # Add your admin/frontend origins here
+        "https://axelpath-git-main-rag-air-esume.vercel.app",
+        "http://localhost:5173",
     ],
     allow_credentials=True,
     allow_methods=["*"],
