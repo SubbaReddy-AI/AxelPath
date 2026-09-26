@@ -2,7 +2,7 @@ import Hero from "../components/home/Hero";
 import ServicesOverview from "../components/home/ServicesOverview";
 import StatsSection from "../components/home/StatsSection";
 import AboutPreview from "../components/home/AboutPreview";
-import WhyQodeKraft from "../components/home/WhyQodeKraft";
+import WhyAxelPath from "../components/home/WhyAxelPath";
 import FeaturedProjects from "../components/home/FeaturedProjects";
 import AcademyPreview from "../components/home/AcademyPreview";
 import InternshipPreview from "../components/home/InternshipPreview";
@@ -25,7 +25,7 @@ function Home() {
 
       <AboutPreview />
 
-      <WhyQodeKraft />
+      <WhyAxelPath />
 
       <FeaturedProjects />
 

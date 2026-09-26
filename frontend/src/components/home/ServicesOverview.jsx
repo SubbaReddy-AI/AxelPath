@@ -48,7 +48,7 @@ function ServicesOverview() {
         <SectionTitle
           eyebrow="What We Build"
           title="Technology that moves businesses forward."
-          description="From intelligent systems to scalable digital products, QodeKraft brings technology, creativity and engineering together."
+          description="From intelligent systems to scalable digital products, AxelPath brings technology, creativity and engineering together."
         />
 
         <div className="qk-service-grid">

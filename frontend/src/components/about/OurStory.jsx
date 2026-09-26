@@ -11,7 +11,7 @@ const milestones = [
     icon: Lightbulb,
     title: "The Idea",
     text:
-      "QodeKraft began with a simple idea: make modern technology more practical, accessible, and impactful.",
+      "AxelPath began with a simple idea: make modern technology more practical, accessible, and impactful.",
   },
   {
     icon: Target,

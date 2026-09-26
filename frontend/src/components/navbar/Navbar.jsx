@@ -10,10 +10,10 @@ function Navbar() {
   return (
     <header className="qk-navbar">
       <div className="qk-navbar-container">
-        <Link to="/" className="qk-navbar-logo" aria-label="QodeKraft Home"><img src="/logo/qodekraft-logo-premium.png" alt="QodeKraft" /></Link>
+        <Link to="/" className="qk-navbar-logo" aria-label="AxelPath Home"><img src="/logo/AxelPath-logo-premium.png" alt="AxelPath" /></Link>
         <NavLinks />
-        <div className="qk-navbar-action"><Link to="/register-course" className="btn btn-primary">Start Learning <span>→</span></Link></div>
-        <button className="qk-mobile-toggle" type="button" aria-label={open ? "Close navigation" : "Open navigation"} aria-expanded={open} onClick={() => setOpen(v => !v)}>{open ? <X size={22}/> : <Menu size={22}/>}</button>
+        <div className="qk-navbar-action"><Link to="/register-course" className="btn btn-primary">Register for a Course <span>→</span></Link></div>
+        <button className="qk-mobile-toggle" type="button" aria-label={open ? "Close navigation" : "Open navigation"} aria-expanded={open} onClick={() => setOpen(v => !v)}>{open ? <X size={22} /> : <Menu size={22} />}</button>
       </div>
       <MobileMenu open={open} onClose={() => setOpen(false)} />
     </header>

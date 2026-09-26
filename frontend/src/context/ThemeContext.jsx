@@ -9,7 +9,7 @@ const ThemeContext = createContext(null);
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem("qodekraft-theme") || "dark";
+    return localStorage.getItem("AxelPath-theme") || "dark";
   });
 
   useEffect(() => {
@@ -19,7 +19,7 @@ export function ThemeProvider({ children }) {
     );
 
     localStorage.setItem(
-      "qodekraft-theme",
+      "AxelPath-theme",
       theme
     );
   }, [theme]);

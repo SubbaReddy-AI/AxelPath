@@ -36,7 +36,7 @@ export default function MissionVision() {
 
           <h2>
             What drives
-            <span> QodeKraft.</span>
+            <span> AxelPath.</span>
           </h2>
         </div>
 

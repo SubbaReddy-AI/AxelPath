@@ -8,7 +8,7 @@ function InternshipHero() {
       <Container>
         <div className="internship-hero-content">
           <span className="section-eyebrow">
-            QodeKraft Internships
+            AxelPath Internships
           </span>
 
           <h1>

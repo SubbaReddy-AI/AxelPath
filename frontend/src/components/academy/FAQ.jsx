@@ -7,7 +7,7 @@ function FAQ() {
   const questions = [
     {
       question:
-        "Who can join QodeKraft Academy?",
+        "Who can join AxelPath Academy?",
       answer:
         "Learners interested in technology can explore the available learning paths based on their current skill level."
     },

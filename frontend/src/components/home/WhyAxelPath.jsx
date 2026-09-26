@@ -25,7 +25,7 @@ const reasons = [
   }
 ];
 
-function WhyQodeKraft() {
+function WhyAxelPath() {
   return (
     <section className="section qk-why-section">
 
@@ -34,7 +34,7 @@ function WhyQodeKraft() {
         <div className="section-header center">
 
           <span className="section-eyebrow">
-            Why QodeKraft
+            Why AxelPath
           </span>
 
           <h2>
@@ -82,4 +82,4 @@ function WhyQodeKraft() {
   );
 }
 
-export default WhyQodeKraft;
+export default WhyAxelPath;

@@ -46,14 +46,16 @@ export default function Login() {
   return (
     <main className="admin-login-page">
       <section className="admin-login-card">
-        <div className="admin-login-logo">Q</div>
+        <div className="admin-login-logo">
+          <img src="/logo/AxelPath-icon.png" alt="AxelPath" />
+        </div>
 
         <span className="admin-login-eyebrow">
-          QodeKraft Administration
+          AxelPath Administration
         </span>
 
         <h1>Welcome back</h1>
-        <p>Sign in to manage QodeKraft content.</p>
+        <p>Sign in to manage AxelPath content.</p>
 
         <form onSubmit={handleSubmit}>
           <label>
@@ -65,7 +67,7 @@ export default function Login() {
                 name="email"
                 value={form.email}
                 onChange={handleChange}
-                placeholder="admin@qodekraft.com"
+                placeholder="admin@AxelPath.com"
                 required
               />
             </span>

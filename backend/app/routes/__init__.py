@@ -12,6 +12,7 @@ from app.routes import (
     testimonials,
     news,
     course_registrations,
+    agreement,
 )
 
 __all__ = [
@@ -28,4 +29,5 @@ __all__ = [
     "testimonials",
     "news",
     "course_registrations",
+    "agreement",
 ]

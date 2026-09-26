@@ -10,7 +10,7 @@
 .qk-workspace-banner-image {
   position: absolute;
   inset: 0;
-  background: url('/images/office/qodekraft-workspace.jpg') center 45% / cover no-repeat;
+  background: url('/images/office/AxelPath-workspace.jpg') center 45% / cover no-repeat;
   filter: saturate(.68) contrast(1.08);
   transform: scale(1.03);
 }
@@ -43,7 +43,7 @@
   letter-spacing: -.045em;
 }
 .qk-workspace-banner p { margin: 0; color: #a7b4c8; font-size: .98rem; }
-.qk-workspace-banner img { width: 155px; max-width: 28vw; opacity: .92; }
+.qk-workspace-banner img { width: 155px; max-width: 28vw; opacity: .92; mix-blend-mode: screen; filter: brightness(1.1); }
 @media (max-width: 700px) {
   .qk-workspace-banner { min-height: 250px; }
   .qk-workspace-banner-content { padding-top: 58px; }

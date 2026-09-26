@@ -4,7 +4,7 @@ import { ArrowUpRight, ExternalLink, Github } from "lucide-react";
 
 export default function ProjectCard({ project }) {
   if (!project) return null;
-  const { slug, title = "QodeKraft Project", description = "A technology solution developed by QodeKraft.", image, category = "Technology", technologies = [], featured = false, live_url, github_url } = project;
+  const { slug, title = "AxelPath Project", description = "A technology solution developed by AxelPath.", image, category = "Technology", technologies = [], featured = false, live_url, github_url } = project;
 
   return (
     <motion.article className="project-card" initial={{ opacity: 0, y: 22 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.12 }} whileHover={{ y: -6 }} transition={{ duration: 0.28 }}>
@@ -12,7 +12,7 @@ export default function ProjectCard({ project }) {
         {image ? <img src={image} alt={title} loading="lazy" /> : <div className="project-card-placeholder"><span>QK</span></div>}
         {featured && <span className="project-card-featured">Featured</span>}
       </div>
-      <div className="qk-card-media-title"><span>QodeKraft Project</span><strong>{title}</strong></div>
+      <div className="qk-card-media-title"><span>AxelPath Project</span><strong>{title}</strong></div>
       <div className="project-card-body">
         <span className="project-card-category">{category}</span>
         <p>{description}</p>

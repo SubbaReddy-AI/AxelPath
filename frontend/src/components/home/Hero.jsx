@@ -13,7 +13,7 @@ function Hero() {
         <div className="qk-hero-content">
           <div className="qk-hero-badge qk-fade-up">
             <span className="qk-status-dot" />
-            QODEKRAFT • AI • SOFTWARE • CLOUD
+            AxelPath • AI • SOFTWARE • CLOUD
           </div>
 
           <p className="qk-hero-eyebrow qk-fade-up">A technology team built to ship what matters.</p>
@@ -24,7 +24,7 @@ function Hero() {
           </h1>
 
           <p className="qk-hero-description qk-fade-up">
-            QodeKraft brings product engineering, AI, cloud and practical learning together in one place — helping teams turn ambitious ideas into useful digital products and helping learners become job-ready.
+            AxelPath brings product engineering, AI, cloud and practical learning together in one place — helping teams turn ambitious ideas into useful digital products and helping learners become job-ready.
           </p>
 
           <div className="qk-hero-actions qk-fade-up">

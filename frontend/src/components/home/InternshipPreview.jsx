@@ -6,7 +6,7 @@ function InternshipPreview() {
       <div className="container">
         <div className="qk-internship-banner">
           <div className="qk-internship-image">
-            <img src="/images/home/dont-just-learn-ship-real-work.webp" alt="Don’t just learn. Ship real work. — QodeKraft" loading="lazy" />
+            <img src="/images/home/dont-just-learn-ship-real-work.webp" alt="Don’t just learn. Ship real work. — AxelPath" loading="lazy" />
             <div className="qk-media-caption"><span>Featured Internship</span><strong>AI Agent Development Internship</strong></div>
           </div>
           <div className="qk-internship-content">

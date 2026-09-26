@@ -4,7 +4,7 @@ function FooterBottom() {
   return (
     <div className="footer-bottom">
       <p>
-        © {new Date().getFullYear()} QodeKraft.
+        © {new Date().getFullYear()} AxelPath.
         All rights reserved.
       </p>
 

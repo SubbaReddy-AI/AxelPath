@@ -42,7 +42,7 @@ function CertificationSection() {
             <div className="academy-cert-image">
               <img
                 src="/imge/academy/04-certification.svg"
-                alt="QodeKraft Academy certification"
+                alt="AxelPath Academy certification"
                 loading="lazy"
               />
             </div>

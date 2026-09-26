@@ -13,7 +13,7 @@ function CourseDetails() {
       <Container>
         <div className="detail-hero-grid">
           <div>
-            <span className="section-eyebrow">QodeKraft Academy</span>
+            <span className="section-eyebrow">AxelPath Academy</span>
             <h1>{course.title}</h1>
             <p className="detail-description">{course.description}</p>
             <div className="detail-focus-list">

@@ -50,10 +50,14 @@ export default function Sidebar({ open, onClose }) {
       }`}
     >
       <div className="admin-sidebar-brand">
-        <span className="admin-sidebar-logo">Q</span>
+        <img
+          src="/logo/AxelPath-icon.png"
+          alt="AxelPath"
+          className="admin-sidebar-logo-img"
+        />
 
         <div>
-          <strong>QodeKraft</strong>
+          <strong>AxelPath</strong>
           <small>Administration</small>
         </div>
       </div>

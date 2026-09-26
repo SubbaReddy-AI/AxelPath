@@ -33,7 +33,7 @@ export default function CourseRegistrations() {
       <main className="admin-main">
         <Header
           title="Course Registrations"
-          subtitle="Students registered for QodeKraft Academy courses."
+          subtitle="Students registered for AxelPath Academy courses."
           onMenuClick={() => setSidebarOpen(!sidebarOpen)}
         />
 

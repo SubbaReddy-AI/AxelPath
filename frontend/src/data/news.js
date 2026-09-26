@@ -1,7 +1,7 @@
 export const news = [
   {
     id: 1,
-    slug: "qodekraft-technology-journey",
+    slug: "AxelPath-technology-journey",
     title:
       "Building a Technology-First Future",
     category: "Company",
@@ -9,7 +9,7 @@ export const news = [
     image:
       "/images/news/technology-journey.svg",
     excerpt:
-      "Discover how QodeKraft brings software engineering, AI, cloud, and technology learning together.",
+      "Discover how AxelPath brings software engineering, AI, cloud, and technology learning together.",
     featured: true,
   },
 

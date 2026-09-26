@@ -29,10 +29,19 @@
   place-items: center;
   flex-shrink: 0;
   border-radius: 12px;
-  color: #ffffff;
-  background: linear-gradient(135deg, #756bff, #00bad5);
+  overflow: hidden;
+  background: #000000;
   font-size: 20px;
   font-weight: 900;
+}
+
+.admin-sidebar-logo-img {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  display: block;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .admin-sidebar-brand strong,

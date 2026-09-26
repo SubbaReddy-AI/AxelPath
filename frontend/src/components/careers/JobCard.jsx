@@ -11,7 +11,7 @@ export default function JobCard({ job }) {
   const {
     slug,
     title = "Open Position",
-    description = "Join QodeKraft and work on meaningful technology projects.",
+    description = "Join AxelPath and work on meaningful technology projects.",
     department = "Technology",
   } = job;
 

@@ -1,5 +1,5 @@
 /* ==========================================================
-   QODEKRAFT — SIMPLE PREMIUM WEBSITE REFRESH
+   AxelPath — SIMPLE PREMIUM WEBSITE REFRESH
    Clean visual hierarchy, strong imagery, minimal metadata.
 ========================================================== */
 
@@ -26,8 +26,8 @@ body {
   backdrop-filter: blur(22px) saturate(140%);
 }
 .qk-navbar-container { max-width: 1180px !important; height: 76px !important; }
-.qk-navbar-logo { width: 142px !important; display:flex; align-items:center; }
-.qk-navbar-logo img { width: 142px !important; height: 42px !important; object-fit:contain; }
+.qk-navbar-logo { width: 160px !important; display:flex; align-items:center; }
+.qk-navbar-logo img { width: 150px !important; height: 54px !important; object-fit:contain; mix-blend-mode:screen; filter:brightness(1.1); }
 .qk-nav-links { gap: 5px !important; }
 .qk-nav-link {
   padding: 9px 11px !important;
@@ -200,7 +200,7 @@ body {
 @media(max-width:850px) {
   .qk-nav-links,.qk-navbar-action { display:none !important; }
   .qk-mobile-toggle { display:flex !important; }
-  .qk-navbar-logo,.qk-navbar-logo img { width:125px !important; }
+  .qk-navbar-logo,.qk-navbar-logo img { width:130px !important; }
   .inner-hero { min-height:400px !important; padding:105px 0 58px !important; }
   .inner-hero h1 { font-size:clamp(2.7rem,10vw,4.4rem) !important; }
 }

@@ -42,7 +42,7 @@ export default function Dashboard() {
       <main className="admin-main">
         <Header
           title="Dashboard"
-          subtitle="Overview of your QodeKraft platform."
+          subtitle="Overview of your AxelPath platform."
           onMenuClick={() =>
             setSidebarOpen(!sidebarOpen)
           }
@@ -87,7 +87,7 @@ export default function Dashboard() {
           </section>
 
           <section className="dashboard-welcome-card">
-            <span>QODEKRAFT ADMIN</span>
+            <span>AxelPath ADMIN</span>
             <h2>Manage your platform from one place.</h2>
             <p>
               Update courses, projects, job openings,

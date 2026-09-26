@@ -9,7 +9,7 @@ function AcademyHero() {
         <div className="academy-hero-layout">
           <div>
             <span className="section-eyebrow">
-              QodeKraft Academy
+              AxelPath Academy
             </span>
 
             <h1>
@@ -40,7 +40,7 @@ function AcademyHero() {
             <div className="academy-hero-card academy-hero-card-main">
               <img
                 src="/imge/academy/01-academy-hero.svg"
-                alt="QodeKraft Academy learning platform"
+                alt="AxelPath Academy learning platform"
               />
               <div className="academy-hero-card-content">
                 <BookOpen size={24} />
@@ -57,7 +57,7 @@ function AcademyHero() {
                 <strong>Hands-on Labs</strong>
               </div>
               <div className="academy-mini-card">
-                <img src="/imge/academy/03-mentor-session.svg" alt="QodeKraft mentor session" />
+                <img src="/imge/academy/03-mentor-session.svg" alt="AxelPath mentor session" />
                 <strong>Mentor Guidance</strong>
               </div>
             </div>

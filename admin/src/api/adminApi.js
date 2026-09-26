@@ -2,7 +2,7 @@ import axios from "axios";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
-  "https://qodekraft.onrender.com/api/v1";
+  "https://AxelPath.onrender.com/api/v1";
 
 const adminApi = axios.create({
   baseURL: API_BASE_URL,
@@ -16,7 +16,7 @@ const adminApi = axios.create({
 adminApi.interceptors.request.use(
   (config) => {
     const token =
-      localStorage.getItem("qodekraft_admin_token") ||
+      localStorage.getItem("AxelPath_admin_token") ||
       localStorage.getItem("admin_token");
 
     if (token) {
@@ -34,7 +34,7 @@ adminApi.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem("qodekraft_admin_token");
+      localStorage.removeItem("AxelPath_admin_token");
       localStorage.removeItem("admin_token");
     }
 

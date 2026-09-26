@@ -76,16 +76,21 @@ textarea {
 }
 
 .admin-login-logo {
-  width: 58px;
-  height: 58px;
+  width: 72px;
+  height: 72px;
   display: grid;
   place-items: center;
   margin-bottom: 25px;
   border-radius: 17px;
-  color: #ffffff;
-  background: linear-gradient(135deg, #7167ff, #00c9df);
-  font-size: 26px;
-  font-weight: 900;
+  overflow: hidden;
+  background: #000000;
+}
+
+.admin-login-logo img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  display: block;
 }
 
 .admin-login-eyebrow {

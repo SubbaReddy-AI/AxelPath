@@ -17,7 +17,7 @@ function Testimonials() {
           <p>
             Real testimonials can be displayed here
             once they are collected through the
-            QodeKraft platform.
+            AxelPath platform.
           </p>
 
         </div>

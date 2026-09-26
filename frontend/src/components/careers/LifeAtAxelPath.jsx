@@ -1,12 +1,12 @@
 import Container from "../common/Container";
 
-function LifeAtQodeKraft() {
+function LifeAtAxelPath() {
   return (
     <section className="section life-section">
       <Container>
         <div className="life-box">
           <span className="section-eyebrow">
-            Life at QodeKraft
+            Life at AxelPath
           </span>
 
           <h2>
@@ -28,4 +28,4 @@ function LifeAtQodeKraft() {
   );
 }
 
-export default LifeAtQodeKraft;
+export default LifeAtAxelPath;

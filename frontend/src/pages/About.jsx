@@ -23,9 +23,9 @@ export default function About() {
         <Container>
           <div className="about-hero-layout">
             <motion.div initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .7 }}>
-              <span className="section-eyebrow">ABOUT QODEKRAFT</span>
+              <span className="section-eyebrow">ABOUT AxelPath</span>
               <h1>Technology should create <span>momentum.</span></h1>
-              <p className="about-lead">QodeKraft is a technology and learning company bringing software engineering, artificial intelligence and practical career development into one ecosystem.</p>
+              <p className="about-lead">AxelPath is a technology and learning company bringing software engineering, artificial intelligence and practical career development into one ecosystem.</p>
               <div className="about-hero-actions">
                 <Link to="/projects" className="btn btn-primary">See what we build <ArrowRight size={17} /></Link>
                 <Link to="/contact" className="btn btn-secondary">Talk to our team</Link>
@@ -37,8 +37,8 @@ export default function About() {
               </div>
             </motion.div>
             <motion.div className="about-hero-image" initial={{ opacity: 0, scale: .94 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: .8 }}>
-              <img src="/imge/about/01-qodekraft-workspace.jpg" alt="QodeKraft working office and technology workspace" />
-              <div className="about-image-diagram" aria-label="QodeKraft working flow"><strong>How QodeKraft works</strong><div><i /> Discover the challenge</div><div><i /> Design the solution</div><div><i /> Build & test</div><div><i /> Launch & improve</div></div>
+              <img src="/imge/about/01-AxelPath-workspace.jpg" alt="AxelPath working office and technology workspace" />
+              <div className="about-image-diagram" aria-label="AxelPath working flow"><strong>How AxelPath works</strong><div><i /> Discover the challenge</div><div><i /> Design the solution</div><div><i /> Build & test</div><div><i /> Launch & improve</div></div>
               <div className="about-image-badge"><Rocket size={17} /><span>Ideas → prototypes → products</span></div>
             </motion.div>
           </div>
@@ -51,7 +51,7 @@ export default function About() {
             <div><span className="section-eyebrow">WHY WE EXIST</span><h2>From learning an idea to <span>launching it.</span></h2></div>
             <div className="about-rich-copy">
               <p>Technology moves quickly. People and businesses need more than tools—they need the confidence and capability to use them well.</p>
-              <p>QodeKraft connects that journey. We create digital solutions, explore emerging AI capabilities and build practical learning experiences around the same technologies used in real projects.</p>
+              <p>AxelPath connects that journey. We create digital solutions, explore emerging AI capabilities and build practical learning experiences around the same technologies used in real projects.</p>
               <p>The goal is simple: make modern technology more useful, more approachable and easier to turn into measurable progress.</p>
             </div>
           </div>
@@ -75,7 +75,7 @@ export default function About() {
       <section className="about-work section">
         <Container>
           <div className="about-work-panel">
-            <div className="about-work-image"><img src="/imge/about/02-qodekraft-team.jpg" alt="Technology team collaborating in a workspace" /></div>
+            <div className="about-work-image"><img src="/imge/about/02-AxelPath-team.jpg" alt="Technology team collaborating in a workspace" /></div>
             <div className="about-work-content"><span className="section-eyebrow">HOW WE WORK</span><h2>Practical, collaborative and <span>built to evolve.</span></h2><p>We do not believe in building technology for technology's sake. We focus on the outcome, build a useful first version, learn from feedback and keep improving.</p><div className="about-process"><span>01 Understand</span><span>02 Build</span><span>03 Test</span><span>04 Improve</span></div><Link to="/register-course" className="text-link">Register for a Course <ArrowRight size={17} /></Link></div>
           </div>
         </Container>
@@ -83,7 +83,7 @@ export default function About() {
 
       <section className="about-principles section">
         <Container>
-          <div className="about-section-heading"><span className="section-eyebrow">OUR PRINCIPLES</span><h2>What you can expect <span>from QodeKraft.</span></h2></div>
+          <div className="about-section-heading"><span className="section-eyebrow">OUR PRINCIPLES</span><h2>What you can expect <span>from AxelPath.</span></h2></div>
           <div className="about-principle-grid">{principles.map(({ icon: Icon, title, text }) => <article key={title} className="about-principle-card"><div className="about-principle-icon"><Icon size={20} /></div><h3>{title}</h3><p>{text}</p></article>)}</div>
         </Container>
       </section>

@@ -1,7 +1,7 @@
 
 
 ## Premium frontend refresh
-The frontend now uses a dark graphite/electric-blue visual system, supplied QodeKraft AI imagery, animated hero visuals, and curated six-item public sections for courses, projects, internships and careers. Backend routes and database structure are preserved.
+The frontend now uses a dark graphite/electric-blue visual system, supplied AxelPath AI imagery, animated hero visuals, and curated six-item public sections for courses, projects, internships and careers. Backend routes and database structure are preserved.
 
 ## Course registration + Razorpay
 
@@ -14,7 +14,7 @@ Flow:
 4. After successful checkout, the browser sends the Razorpay payment ID/order ID/signature to the backend.
 5. Backend verifies the HMAC signature, checks the payment is captured, checks the order and amount, and checks the UTR/transaction reference.
 6. UTRs, Razorpay order IDs and payment IDs are unique in MySQL.
-7. A `QKREG-YYYY-XXXXXXXX` registration ID is generated and the confirmation email is sent through the configured SMTP account.
+7. A `APREG-YYYY-XXXXXXXX` registration ID is generated and the confirmation email is sent through the configured SMTP account.
 
 ### Required server environment
 
@@ -63,11 +63,11 @@ Troubleshooting
 
 And I won't invent technologies or features that aren't in your project.
 # ==========================================
-# QODEKRAFT - COMPLETE START COMMANDS
+# AxelPath - COMPLETE START COMMANDS
 # ==========================================
 
 # 1. GO TO PROJECT ROOT
-cd "C:\Users\HP\OneDrive\Desktop\QodeKraft Premium\QodeKraft"
+cd "C:\Users\HP\OneDrive\Desktop\AxelPath Premium\AxelPath"
 
 
 # ==========================================
@@ -123,7 +123,7 @@ docker compose exec mysql mysql -uroot -p
 
 # Inside MySQL:
 SHOW DATABASES;
-USE qodekraft;
+USE AxelPath;
 SHOW TABLES;
 exit;
 
@@ -133,7 +133,7 @@ exit;
 # ==========================================
 # OPEN A NEW POWERSHELL WINDOW
 
-cd "C:\Users\HP\OneDrive\Desktop\QodeKraft Premium\QodeKraft\frontend"
+cd "C:\Users\HP\OneDrive\Desktop\AxelPath Premium\AxelPath\frontend"
 
 npm install
 
@@ -169,7 +169,7 @@ npm run dev
 # 12. STOP DOCKER
 # ==========================================
 
-cd "C:\Users\HP\OneDrive\Desktop\QodeKraft Premium\QodeKraft"
+cd "C:\Users\HP\OneDrive\Desktop\AxelPath Premium\AxelPath"
 
 docker compose stop
 
@@ -238,7 +238,7 @@ docker compose logs --tail=100 mysql
 
 # TERMINAL 1
 
-cd "C:\Users\HP\OneDrive\Desktop\QodeKraft Premium\QodeKraft"
+cd "C:\Users\HP\OneDrive\Desktop\AxelPath Premium\AxelPath"
 
 docker compose up -d
 
@@ -247,7 +247,7 @@ docker compose ps
 
 # TERMINAL 2
 
-cd "C:\Users\HP\OneDrive\Desktop\QodeKraft Premium\QodeKraft\frontend"
+cd "C:\Users\HP\OneDrive\Desktop\AxelPath Premium\AxelPath\frontend"
 
 npm run dev
 

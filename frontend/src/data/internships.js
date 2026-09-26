@@ -1,4 +1,4 @@
-// QodeKraft internship technology path order.
+// AxelPath internship technology path order.
 export const internships = [
   { id: 1, slug: "ai-machine-learning-internship", title: "AI & Machine Learning Internship", description: "Work on practical machine learning workflows, model experiments and portfolio-ready AI projects.", location: "Hyderabad", duration: "8 Weeks", mode: "Hybrid", domain: "AI / ML", openings: 10, image: "/imge/internships/ai-ml.webp" },
   { id: 2, slug: "generative-ai-internship", title: "Generative AI Internship", description: "Build LLM-powered applications with prompt engineering, embeddings and modern AI APIs.", location: "Hyderabad", duration: "8 Weeks", mode: "Hybrid", domain: "Generative AI", openings: 8, image: "/imge/internships/generative-ai.webp" },

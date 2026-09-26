@@ -38,7 +38,7 @@ export default function CompanyOverview() {
             }}
           >
             <span className="section-eyebrow">
-              About QodeKraft
+              About AxelPath
             </span>
 
             <h2>
@@ -49,7 +49,7 @@ export default function CompanyOverview() {
             </h2>
 
             <p className="company-overview-lead">
-              QodeKraft is a technology-focused
+              AxelPath is a technology-focused
               company delivering modern digital
               solutions, AI-powered products,
               and practical technology learning
@@ -109,7 +109,7 @@ export default function CompanyOverview() {
               </div>
 
               <span className="company-overview-card-label">
-                QODEKRAFT
+                AxelPath
               </span>
 
               <h3>

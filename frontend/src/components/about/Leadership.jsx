@@ -6,10 +6,10 @@ import {
 
 const leaders = [
   {
-    name: "QodeKraft Leadership",
+    name: "AxelPath Leadership",
     role: "Technology & Innovation",
     description:
-      "Leading the vision, technology strategy, and innovation journey of QodeKraft.",
+      "Leading the vision, technology strategy, and innovation journey of AxelPath.",
   },
 ];
 

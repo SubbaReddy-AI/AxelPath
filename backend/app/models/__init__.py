@@ -12,6 +12,7 @@ from app.models.newsletter import Newsletter
 from app.models.testimonial import Testimonial
 from app.models.news import News
 from app.models.course_registration import CourseRegistration
+from app.models.agreement_acceptance import AgreementAcceptance
 
 __all__ = [
     "User",
@@ -28,4 +29,5 @@ __all__ = [
     "Testimonial",
     "News",
     "CourseRegistration",
+    "AgreementAcceptance",
 ]

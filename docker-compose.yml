@@ -6,18 +6,18 @@ services:
 
   mysql:
     image: mysql:8.4
-    container_name: qodekraft_mysql
+    container_name: AxelPath_mysql
     restart: unless-stopped
 
     environment:
-      MYSQL_DATABASE: qodekraft
+      MYSQL_DATABASE: AxelPath
       MYSQL_ROOT_PASSWORD: "Password"
 
     ports:
       - "3307:3306"
 
     volumes:
-      - qodekraft_mysql_data:/var/lib/mysql
+      - AxelPath_mysql_data:/var/lib/mysql
 
     healthcheck:
       test:
@@ -39,7 +39,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
 
-    container_name: qodekraft_backend
+    container_name: AxelPath_backend
     restart: unless-stopped
 
     depends_on:
@@ -48,7 +48,7 @@ services:
 
     environment:
 
-      APP_NAME: "QodeKraft API"
+      APP_NAME: "AxelPath API"
       APP_ENV: "production"
       DEBUG: "False"
       API_PREFIX: "/api/v1"
@@ -56,11 +56,11 @@ services:
       # MYSQL
       MYSQL_HOST: "mysql"
       MYSQL_PORT: "3306"
-      MYSQL_DATABASE: "qodekraft"
+      MYSQL_DATABASE: "AxelPath"
       MYSQL_USER: "root"
       MYSQL_PASSWORD: "Password"
 
-      DATABASE_URL: "mysql+pymysql://root:Password@mysql:3306/qodekraft?charset=utf8mb4"
+      DATABASE_URL: "mysql+pymysql://root:Password@mysql:3306/AxelPath?charset=utf8mb4"
 
       # SECURITY
       SECRET_KEY: "7Gs967yD6sl7esAxHk6ICMzQeR-YQAvNyNbbZrcJ5WSbT8OODCxPgYIJVlu7s7_"
@@ -77,12 +77,12 @@ services:
       # EMAIL
       SMTP_HOST: "smtp.gmail.com"
       SMTP_PORT: "587"
-      SMTP_USERNAME: "qodekraft@gmail.com"
+      SMTP_USERNAME: "AxelPath@gmail.com"
       SMTP_PASSWORD: "qhqqjwrbewmtnrgy"
-      EMAIL_FROM: "qodekraft@gmail.com"
+      EMAIL_FROM: "AxelPath@gmail.com"
 
       # ADMIN
-      ADMIN_EMAIL: "qodekraft@gmail.com"
+      ADMIN_EMAIL: "AxelPath@gmail.com"
       ADMIN_PASSWORD: "Ahemanth@143"
 
       # RAZORPAY
@@ -93,7 +93,7 @@ services:
       - "8000:8000"
 
     volumes:
-      - qodekraft_uploads:/app/app/uploads
+      - AxelPath_uploads:/app/app/uploads
 
 
 # ==========================================
@@ -102,6 +102,6 @@ services:
 
 volumes:
 
-  qodekraft_mysql_data:
+  AxelPath_mysql_data:
 
-  qodekraft_uploads:
+  AxelPath_uploads:

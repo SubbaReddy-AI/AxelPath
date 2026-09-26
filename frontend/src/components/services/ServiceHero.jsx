@@ -47,7 +47,7 @@ function ServiceHero() {
               From artificial intelligence and
               software engineering to cloud,
               data and digital products,
-              QodeKraft builds technology around
+              AxelPath builds technology around
               real-world problems.
             </p>
           </motion.div>

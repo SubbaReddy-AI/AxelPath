@@ -18,7 +18,7 @@ function ProjectsHero() {
         <p>
           Explore technology projects,
           experiments and digital solutions
-          built by QodeKraft.
+          built by AxelPath.
         </p>
       </Container>
     </section>

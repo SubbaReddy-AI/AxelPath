@@ -1,4 +1,4 @@
-# QodeKraft Frontend — Simple Premium Refresh
+# AxelPath Frontend — Simple Premium Refresh
 
 ## What changed
 

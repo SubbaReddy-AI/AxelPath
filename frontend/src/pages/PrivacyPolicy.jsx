@@ -19,7 +19,7 @@ function PrivacyPolicy() {
           <h2>1. Introduction</h2>
 
           <p>
-            QodeKraft respects the privacy of
+            AxelPath respects the privacy of
             visitors, learners, applicants,
             clients and users of its digital
             platforms.
@@ -55,7 +55,7 @@ function PrivacyPolicy() {
 
           <p>
             For privacy-related questions,
-            contact QodeKraft through the official
+            contact AxelPath through the official
             contact channels.
           </p>
         </div>

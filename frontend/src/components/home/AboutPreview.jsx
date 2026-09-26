@@ -40,7 +40,7 @@ function AboutPreview() {
         <div className="qk-about-content">
 
           <span className="section-eyebrow">
-            About QodeKraft
+            About AxelPath
           </span>
 
           <h2>
@@ -49,7 +49,7 @@ function AboutPreview() {
           </h2>
 
           <p>
-            QodeKraft is a technology-driven company
+            AxelPath is a technology-driven company
             focused on creating modern digital products,
             intelligent systems and practical technology
             solutions.
@@ -65,7 +65,7 @@ function AboutPreview() {
             to="/about"
             className="btn btn-secondary"
           >
-            Discover QodeKraft
+            Discover AxelPath
             <span>→</span>
           </Link>
 

@@ -32,7 +32,7 @@ function Newsletter() {
             </h2>
 
             <p>
-              Get QodeKraft updates and insights
+              Get AxelPath updates and insights
               directly in your inbox.
             </p>
 

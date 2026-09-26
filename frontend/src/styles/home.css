@@ -1,5 +1,5 @@
 /* ============================================================
-   QODEKRAFT HOME
+   AxelPath HOME
 ============================================================ */
 
 .qk-home {
@@ -1187,7 +1187,7 @@
   position: absolute;
   inset: 0;
   z-index: -3;
-  background-image: url('/images/home/qodekraft-engineering-impact.webp');
+  background-image: url('/images/home/AxelPath-engineering-impact.webp');
   background-size: cover;
   background-position: center center;
   filter: saturate(.88) contrast(1.04);

@@ -11,7 +11,7 @@ export default function CourseCard({ course }) {
       <Link to={`/academy/courses/${slug}`} className="premium-card-image-link" aria-label={`View ${title}`}>
         <div className="course-card-image premium-card-image">
           {image ? <img src={image} alt={title} loading="lazy" /> : <div className="course-card-placeholder">QK</div>}
-          <span className="premium-image-tag">QodeKraft Academy</span>
+          <span className="premium-image-tag">AxelPath Academy</span>
         </div>
       </Link>
       <div className="qk-card-media-title premium-card-title">

@@ -47,7 +47,7 @@ export default function News() {
     <div className="admin-layout">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <main className="admin-main">
-        <Header title="News" subtitle="Publish and manage QodeKraft news." onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+        <Header title="News" subtitle="Publish and manage AxelPath news." onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
         <div className="admin-page-content">
           <button className="admin-primary-button admin-add-button" onClick={() => { setEditing(null); setForm(emptyNews); setOpen(true); }}><Plus size={18} /> Add News</button>
           <DataTable

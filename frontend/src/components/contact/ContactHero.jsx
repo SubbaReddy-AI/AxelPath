@@ -5,7 +5,7 @@ function ContactHero() {
     <section className="inner-hero contact-hero">
       <Container>
         <span className="section-eyebrow">
-          Contact QodeKraft
+          Contact AxelPath
         </span>
 
         <h1>

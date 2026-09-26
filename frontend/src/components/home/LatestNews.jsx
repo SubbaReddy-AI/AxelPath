@@ -14,7 +14,7 @@ function LatestNews() {
 
           <h2>
             What's happening at
-            <span> QodeKraft.</span>
+            <span> AxelPath.</span>
           </h2>
 
           <p>
@@ -40,7 +40,7 @@ function LatestNews() {
 
             <p>
               Explore articles and updates from
-              QodeKraft.
+              AxelPath.
             </p>
 
             <strong>
@@ -75,7 +75,7 @@ function LatestNews() {
             className="qk-news-card card"
           >
             <span>
-              QodeKraft
+              AxelPath
             </span>
 
             <h3>

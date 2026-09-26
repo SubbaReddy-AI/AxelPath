@@ -5,7 +5,7 @@ function CareersHero() {
     <section className="inner-hero careers-hero">
       <Container>
         <span className="section-eyebrow">
-          Careers at QodeKraft
+          Careers at AxelPath
         </span>
 
         <h1>

@@ -1,4 +1,4 @@
-export const APP_NAME = "QodeKraft";
+export const APP_NAME = "AxelPath";
 
 export const APP_TAGLINE =
   "Engineering ideas into intelligent digital experiences.";

@@ -19,7 +19,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const loadProfile = async () => {
       const token = localStorage.getItem(
-        "qodekraft_admin_token"
+        "AxelPath_admin_token"
       );
 
       if (!token) {
@@ -32,7 +32,7 @@ export function AuthProvider({ children }) {
         setUser(profile);
       } catch {
         localStorage.removeItem(
-          "qodekraft_admin_token"
+          "AxelPath_admin_token"
         );
         setUser(null);
       } finally {
@@ -51,7 +51,7 @@ export function AuthProvider({ children }) {
     }
 
     localStorage.setItem(
-      "qodekraft_admin_token",
+      "AxelPath_admin_token",
       data.access_token
     );
 
@@ -61,7 +61,7 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
-    localStorage.removeItem("qodekraft_admin_token");
+    localStorage.removeItem("AxelPath_admin_token");
     setUser(null);
   };
 

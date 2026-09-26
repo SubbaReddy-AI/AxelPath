@@ -11,7 +11,7 @@ export default function InternshipCard({ internship }) {
       <Link to={`/internships/${slug}`} className="premium-card-image-link" aria-label={`View ${title}`}>
         <div className="internship-card-image premium-card-image">
           <img src={internship.image || "/imge/internships/ai-ml.webp"} alt={title} loading="lazy" />
-          <span className="premium-image-tag">QodeKraft Internship</span>
+          <span className="premium-image-tag">AxelPath Internship</span>
         </div>
       </Link>
       <div className="qk-card-media-title premium-card-title">

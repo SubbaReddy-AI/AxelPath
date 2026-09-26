@@ -8,7 +8,7 @@ function FeaturedProjects() {
         <div className="section-header">
           <span className="section-eyebrow">Selected Work</span>
           <h2>Technology that <span>ships.</span></h2>
-          <p>Six focused examples of the AI, data and software experiences QodeKraft is built to deliver.</p>
+          <p>Six focused examples of the AI, data and software experiences AxelPath is built to deliver.</p>
         </div>
 
         <div className="qk-project-grid qk-project-grid-premium">

@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     # APPLICATION
     # ============================================================
 
-    APP_NAME: str = "QodeKraft API"
+    APP_NAME: str = "AxelPath API"
     APP_ENV: str = "production"
     DEBUG: bool = False
 
@@ -26,9 +26,10 @@ class Settings(BaseSettings):
     # ============================================================
     # FRONTEND / ADMIN
     # ============================================================
-    FRONTEND_URL: str = "https://www.qodekraft.in"
-    OLD_FRONTEND_URL: str = "https://qodekraft.vercel.app"
-    ADMIN_URL: str = "https://qode-kraft.vercel.app"
+
+    FRONTEND_URL: str = "https://www.axelpath.in"
+    OLD_FRONTEND_URL: str = "https://axelpath.vercel.app"
+    ADMIN_URL: str = "https://axelpath-admin.vercel.app"
 
     # ============================================================
     # FILE UPLOADS
@@ -56,6 +57,14 @@ class Settings(BaseSettings):
 
     RAZORPAY_KEY_ID: str = ""
     RAZORPAY_KEY_SECRET: str = ""
+    RAZORPAY_WEBHOOK_SECRET: str = ""
+
+    # ============================================================
+    # GOOGLE DRIVE (future — leave empty until configured)
+    # ============================================================
+
+    GOOGLE_DRIVE_FOLDER_ID: str = ""
+    GOOGLE_DRIVE_FOLDER_URL: str = ""
 
     # ============================================================
     # SETTINGS CONFIGURATION

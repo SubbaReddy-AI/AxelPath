@@ -19,7 +19,7 @@ function TermsConditions() {
           <h2>1. Website Use</h2>
 
           <p>
-            By using the QodeKraft website,
+            By using the AxelPath website,
             visitors agree to use the website
             responsibly and lawfully.
           </p>
@@ -52,7 +52,7 @@ function TermsConditions() {
           <h2>5. Changes</h2>
 
           <p>
-            QodeKraft may update these terms when
+            AxelPath may update these terms when
             necessary.
           </p>
         </div>

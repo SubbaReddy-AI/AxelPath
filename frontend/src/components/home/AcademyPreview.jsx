@@ -8,7 +8,7 @@ function AcademyPreview() {
         <div className="qk-academy-image-wrap">
           <img
             src="/images/home/learn-skills-career.webp"
-            alt="Learn skills that move your career — QodeKraft Academy"
+            alt="Learn skills that move your career — AxelPath Academy"
             loading="lazy"
             decoding="async"
           />

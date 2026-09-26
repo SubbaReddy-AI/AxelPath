@@ -1,13 +1,13 @@
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
-  "https://qodekraft.onrender.com/api/v1";
+  "https://AxelPath.onrender.com/api/v1";
 
 async function request(
   endpoint,
   options = {}
 ) {
   const token =
-    localStorage.getItem("qodekraft_token");
+    localStorage.getItem("AxelPath_token");
 
   const headers = {
     ...(options.headers || {}),

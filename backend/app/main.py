@@ -8,7 +8,7 @@ from app.config import settings
 from app.database.base import Base
 from app.database.connection import engine
 
-# Import models so SQLAlchemy registers all tables
+# Import models so SQLAlchemy registers all tables (including new ones)
 import app.models  # noqa: F401
 
 from app.routes import (
@@ -25,6 +25,7 @@ from app.routes import (
     testimonials,
     news,
     course_registrations,
+    agreement,
 )
 
 from app.routes.certificates import router as certificates_router
@@ -37,12 +38,12 @@ from app.routes.certificates import router as certificates_router
 app = FastAPI(
     title=settings.APP_NAME,
     version="1.0.0",
-    description="QodeKraft Technology Platform API",
+    description="AxelPath Technology Platform API",
 )
 
 
 # ============================================================
-# DATABASE
+# DATABASE — create tables (safe: will not drop existing data)
 # ============================================================
 
 Base.metadata.create_all(bind=engine)
@@ -52,15 +53,13 @@ Base.metadata.create_all(bind=engine)
 # CORS
 # ============================================================
 
-from fastapi.middleware.cors import CORSMiddleware
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://qode-kraft.vercel.app",
-        "https://www.qodekraft.in",
-        "https://qodekraft.in",
-        "https://qodekraft.vercel.app",
+        "https://www.axelpath.in",
+        "https://axelpath.in",
+        "https://axelpath.vercel.app",
+        # Add your admin/frontend origins here
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -90,18 +89,9 @@ app.include_router(contacts.router, prefix=API)
 app.include_router(newsletter.router, prefix=API)
 app.include_router(testimonials.router, prefix=API)
 app.include_router(news.router, prefix=API)
-
-# Course registration routes
-app.include_router(
-    course_registrations.router,
-    prefix=API,
-)
-
-# Certificate routes
-app.include_router(
-    certificates_router,
-    prefix=API,
-)
+app.include_router(course_registrations.router, prefix=API)
+app.include_router(agreement.router, prefix=API)
+app.include_router(certificates_router, prefix=API)
 
 
 # ============================================================
@@ -109,11 +99,7 @@ app.include_router(
 # ============================================================
 
 upload_directory = Path(settings.UPLOAD_DIR)
-
-upload_directory.mkdir(
-    parents=True,
-    exist_ok=True,
-)
+upload_directory.mkdir(parents=True, exist_ok=True)
 
 app.mount(
     "/uploads",
@@ -129,7 +115,7 @@ app.mount(
 @app.get("/")
 def root():
     return {
-        "name": "QodeKraft API",
+        "name": "AxelPath API",
         "status": "running",
         "version": "1.0.0",
     }
@@ -141,6 +127,4 @@ def root():
 
 @app.get("/health")
 def health():
-    return {
-        "status": "healthy",
-    }
+    return {"status": "healthy"}

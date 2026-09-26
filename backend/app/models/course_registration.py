@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, Integer, String
+from sqlalchemy import Boolean, DateTime, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database.base import Base
@@ -24,8 +24,8 @@ class CourseRegistration(Base):
     course_title: Mapped[str] = mapped_column(String(200), nullable=False)
     amount: Mapped[int] = mapped_column(Integer, nullable=False)
 
-    razorpay_order_id: Mapped[str] = mapped_column(
-        String(80), unique=True, index=True, nullable=False
+    razorpay_order_id: Mapped[str | None] = mapped_column(
+        String(80), unique=True, index=True, nullable=True
     )
     razorpay_payment_id: Mapped[str | None] = mapped_column(
         String(80), unique=True, index=True, nullable=True
@@ -36,8 +36,31 @@ class CourseRegistration(Base):
     )
 
     payment_status: Mapped[str] = mapped_column(
-        String(30), default="pending", index=True, nullable=False
+        String(30), default="pending_agreement", index=True, nullable=False
     )
+
+    # Agreement acceptance (denormalised for quick lookup)
+    agreement_accepted: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )
+    agreement_version: Mapped[str | None] = mapped_column(String(120), nullable=True)
+
+    # Enrollment
+    enrollment_status: Mapped[str] = mapped_column(
+        String(50), default="pending", nullable=False
+    )
+
+    # Google Drive future-ready fields (NULL until configured)
+    google_drive_folder_id: Mapped[str | None] = mapped_column(
+        String(255), nullable=True
+    )
+    google_drive_folder_url: Mapped[str | None] = mapped_column(
+        String(512), nullable=True
+    )
+    google_drive_status: Mapped[str | None] = mapped_column(
+        String(50), nullable=True, default="pending"
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, nullable=False
     )

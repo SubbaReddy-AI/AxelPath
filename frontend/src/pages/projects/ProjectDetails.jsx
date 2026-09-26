@@ -14,7 +14,7 @@ function ProjectDetails() {
       <Container>
         <Link to="/projects" className="detail-back"><ArrowLeft size={16} /> Back to projects</Link>
         <div className="detail-project-grid">
-          <div className="detail-image-wrap"><img src={project.image} alt={project.title} /><div className="qk-card-media-title"><span>QodeKraft Project</span><strong>{project.title}</strong></div></div>
+          <div className="detail-image-wrap"><img src={project.image} alt={project.title} /><div className="qk-card-media-title"><span>AxelPath Project</span><strong>{project.title}</strong></div></div>
           <div>
             <span className="section-eyebrow">{project.category}</span>
             <h1>{project.title}</h1>

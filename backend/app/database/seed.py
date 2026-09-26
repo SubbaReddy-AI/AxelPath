@@ -24,7 +24,7 @@ def seed_database():
         admin = (
             db.query(User)
             .filter(
-                User.email == "admin@qodekraft.com"
+                User.email == "admin@AxelPath.com"
             )
             .first()
         )
@@ -32,8 +32,8 @@ def seed_database():
         if not admin:
 
             admin = User(
-                name="QodeKraft Admin",
-                email="admin@qodekraft.com",
+                name="AxelPath Admin",
+                email="admin@AxelPath.com",
                 password_hash=hash_password(
                     "ChangeThisPassword123!"
                 ),
@@ -107,7 +107,7 @@ def seed_database():
         # COURSES
         # Payment amount is kept internally for Razorpay; it is not displayed
         # on the public website UI.
-        COURSE_FEE = 8500
+        COURSE_FEE = 8550  # ₹8,550 — matches COURSE_REGISTRATION_FEE_RUPEES in route
 
         courses = [
             {"title": "Web Development", "slug": "web-development", "description": "Build responsive, accessible and modern web experiences with practical frontend engineering.", "level": "Beginner", "duration": "10 Weeks", "price": COURSE_FEE},
@@ -258,7 +258,7 @@ def seed_database():
         db.commit()
 
         print(
-            "QodeKraft database seeded successfully."
+            "AxelPath database seeded successfully."
         )
 
     except Exception as error:

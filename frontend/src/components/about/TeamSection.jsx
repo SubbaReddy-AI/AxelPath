@@ -56,7 +56,7 @@ export default function TeamSection() {
           </h2>
 
           <p>
-            QodeKraft brings different areas of
+            AxelPath brings different areas of
             expertise together to turn ideas into
             useful technology.
           </p>

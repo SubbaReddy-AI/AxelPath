@@ -13,7 +13,7 @@ function InternshipDetails() {
       <Container>
         <div className="detail-hero-grid">
           <div>
-            <span className="section-eyebrow">QodeKraft Internship</span>
+            <span className="section-eyebrow">AxelPath Internship</span>
             <h1>{internship.title}</h1>
             <p className="detail-description">{internship.description}</p>
             <div className="detail-focus-list">

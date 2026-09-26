@@ -1,4 +1,4 @@
-# QodeKraft API Documentation
+# AxelPath API Documentation
 
 ## Base URL
 

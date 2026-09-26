@@ -31,7 +31,7 @@ export default function Header({
       <div className="admin-user-menu">
         <div className="admin-user-details">
           <strong>{user?.full_name || "Administrator"}</strong>
-          <span>{user?.email || "admin@qodekraft.com"}</span>
+          <span>{user?.email || "admin@AxelPath.com"}</span>
         </div>
 
         <button

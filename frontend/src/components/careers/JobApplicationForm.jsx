@@ -22,7 +22,7 @@ function JobApplicationForm() {
             <h1>
               Apply to
               <span className="gradient-text">
-                {" "}QodeKraft.
+                {" "}AxelPath.
               </span>
             </h1>
 

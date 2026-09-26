@@ -35,7 +35,7 @@ function CertificateVerification() {
       <div className="certificate-backdrop" />
       <div className="container">
         <div className="certificate-brand">
-          <img src="/logo/qodekraft-logo-premium.png" alt="QodeKraft company logo" />
+          <img src="/logo/AxelPath-logo-premium.png" alt="AxelPath company logo" />
           <div className={`certificate-light ${result?.success ? "is-green" : result?.success === false ? "is-red" : ""}`}>
             <span />
             <strong>{result?.success ? "Verified" : result?.success === false ? "Not Verified" : "Ready to Verify"}</strong>
@@ -43,9 +43,9 @@ function CertificateVerification() {
         </div>
 
         <div className="section-header center certificate-header">
-          <span className="section-eyebrow">QODEKRAFT ACADEMY</span>
+          <span className="section-eyebrow">AxelPath ACADEMY</span>
           <h1>Verify your <span>certificate.</span></h1>
-          <p>Enter the certificate ID issued by QodeKraft. A valid certificate will show a green verification light and certificate details.</p>
+          <p>Enter the certificate ID issued by AxelPath. A valid certificate will show a green verification light and certificate details.</p>
         </div>
 
         <div className="certificate-card">
@@ -54,7 +54,7 @@ function CertificateVerification() {
             <div className="certificate-shield">✓</div>
           </div>
           <form onSubmit={verifyCertificate} className="certificate-form">
-            <input type="text" className="form-control" placeholder="Enter certificate ID • QK-2026-0001" value={certificateId} onChange={(event) => setCertificateId(event.target.value)} />
+            <input type="text" className="form-control" placeholder="Enter certificate ID • AP-2026-0001" value={certificateId} onChange={(event) => setCertificateId(event.target.value)} />
             <button type="submit" className="btn btn-primary" disabled={loading}>{loading ? "Checking..." : "Verify Certificate →"}</button>
           </form>
 
@@ -62,7 +62,7 @@ function CertificateVerification() {
             <div className={`certificate-result ${result.success ? "success" : "error"}`}>
               {result.success ? (
                 <>
-                  <div className="verified-line"><span className="verified-dot">✓</span><div><strong>Certificate verified successfully</strong><small>QodeKraft authentication passed</small></div></div>
+                  <div className="verified-line"><span className="verified-dot">✓</span><div><strong>Certificate verified successfully</strong><small>AxelPath authentication passed</small></div></div>
                   <div className="certificate-details">
                     <p><strong>Name</strong><span>{result.data.name}</span></p>
                     <p><strong>Program</strong><span>{result.data.program}</span></p>

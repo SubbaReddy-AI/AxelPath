@@ -11,8 +11,8 @@ function Footer() {
       <div className="footer-main">
         <div className="footer-brand">
           <img
-            src="/logo/qodekraft-logo.png"
-            alt="QodeKraft"
+            src="/logo/AxelPath-logo.png"
+            alt="AxelPath"
           />
 
         </div>

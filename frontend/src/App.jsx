@@ -17,7 +17,7 @@ function App() {
 
         <AuthProvider>
 
-          {/* QodeKraft Opening Animation */}
+          {/* AxelPath Opening Animation */}
           <PageLoader />
 
           {/* Website Routes */}
