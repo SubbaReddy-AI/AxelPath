@@ -7,6 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from app.config import settings
 from app.database.base import Base
 from app.database.connection import engine
+from app.database.migrations import run_database_migrations
 
 # Import models so SQLAlchemy registers all tables
 import app.models  # noqa: F401
@@ -48,6 +49,9 @@ app = FastAPI(
 # Creates missing tables without deleting existing data.
 # NOTE: create_all() does NOT modify existing table columns.
 Base.metadata.create_all(bind=engine)
+
+# Apply safe database schema migrations.
+run_database_migrations()
 
 
 # ============================================================
