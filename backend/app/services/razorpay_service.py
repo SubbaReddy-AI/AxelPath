@@ -76,7 +76,7 @@ def create_order(
         "currency": "INR",
         "receipt": receipt,
         "notes": notes,
-        "capture": "automatic",           # auto-capture on payment success
+        "payment_capture": 1,             # auto-capture on payment success
     }
 
     logger.info(
@@ -91,6 +91,12 @@ def create_order(
         json=payload,
         timeout=20,
     )
+    if not response.is_success:
+        logger.error(
+            "Razorpay: order creation failed | status=%s body=%s",
+            response.status_code,
+            response.text,
+        )
     response.raise_for_status()
     order = response.json()
 
