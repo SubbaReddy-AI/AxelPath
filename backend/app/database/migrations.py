@@ -11,13 +11,23 @@ Design rules
 - Never drops a table.
 - Never drops a column.
 - Never deletes a row.
-- Only ADDs missing columns to tables that already exist.
+- Adds missing columns to existing tables (ADD COLUMN).
+- Corrects NOT NULL → NULL on columns that are legitimately nullable in the
+  model but were created NOT NULL by an older deployment (MODIFY COLUMN).
 - New tables are handled by Base.metadata.create_all() before this runs.
-- Every ALTER TABLE statement is guarded by a column-existence check.
-- Running this multiple times (idempotent) is safe.
+- Every ALTER TABLE statement is guarded by a live-schema check (existence
+  for ADD, current nullability for MODIFY) so it is fully idempotent.
+- Running this multiple times is safe.
 - No credentials are hard-coded; the existing DATABASE_URL engine is reused.
-- Every action (add / skip) is logged.
+- Every action (add / modify / skip) is logged.
 - Any unexpected exception aborts startup with a full traceback.
+
+MODIFY COLUMN note
+-------------------
+MySQL MODIFY COLUMN rewrites the column definition in-place.  The UNIQUE
+index and any other index on the column are preserved automatically by MySQL
+when the column name, type and length are unchanged.  Only nullability is
+altered.  All existing row data is preserved.
 
 Source of truth
 ---------------
@@ -64,9 +74,14 @@ logger = logging.getLogger(__name__)
 # Internal helpers
 # ---------------------------------------------------------------------------
 
+def _column_info(inspector, table: str) -> dict:
+    """Return {column_name: column_dict} for every column currently in *table*."""
+    return {col["name"]: col for col in inspector.get_columns(table)}
+
+
 def _existing_columns(inspector, table: str) -> set:
     """Return the set of column names that currently exist in *table*."""
-    return {col["name"] for col in inspector.get_columns(table)}
+    return set(_column_info(inspector, table).keys())
 
 
 def _add_column(conn, existing: set, table: str, column: str, ddl: str) -> bool:
@@ -79,9 +94,42 @@ def _add_column(conn, existing: set, table: str, column: str, ddl: str) -> bool:
         logger.debug("  [skip] %s.%s already present", table, column)
         return False
 
-    logger.info("  [add ] %s.%s — executing ALTER TABLE", table, column)
+    logger.info("  [add ] %s.%s — executing ALTER TABLE ADD COLUMN", table, column)
     conn.execute(text(ddl))
     logger.info("  [done] %s.%s added", table, column)
+    return True
+
+
+def _fix_nullable(conn, info: dict, table: str, column: str, modify_ddl: str) -> bool:
+    """
+    Issue ALTER TABLE … MODIFY COLUMN iff the live column is currently NOT NULL
+    but the SQLAlchemy model declares it nullable=True.
+
+    *modify_ddl* must contain the complete new column definition (type + NULL)
+    so that MySQL does not inadvertently change other properties.
+
+    Returns True when the column was modified, False when already nullable or
+    when the column does not exist yet (add_column handles that case).
+
+    Idempotent: if the column is already NULL in the DB, nothing is executed.
+    """
+    col = info.get(column)
+    if col is None:
+        # Column doesn't exist yet — _add_column will create it as nullable.
+        logger.debug("  [skip-null-fix] %s.%s not yet present", table, column)
+        return False
+
+    if col.get("nullable", True):  # already nullable — nothing to do
+        logger.debug("  [skip-null-fix] %s.%s already nullable", table, column)
+        return False
+
+    logger.info(
+        "  [fix ] %s.%s is NOT NULL in DB but nullable=True in model — "
+        "executing MODIFY COLUMN",
+        table, column,
+    )
+    conn.execute(text(modify_ddl))
+    logger.info("  [done] %s.%s nullability corrected to NULL", table, column)
     return True
 
 
@@ -93,10 +141,11 @@ def _migrate_course_registrations(inspector, conn) -> None:
     """
     Reconcile course_registrations against CourseRegistration model.
 
-    Model columns that may be absent from an older production table
-    (columns present since the first deployment are excluded):
-      - razorpay_signature   String(128) NULL
-      - utr                  String(100) NULL UNIQUE
+    Phase A — ADD missing columns
+    ------------------------------
+    Columns that may be absent from an older production table:
+      - razorpay_signature   VARCHAR(128) NULL
+      - utr                  VARCHAR(100) NULL
       - agreement_accepted   BOOLEAN NOT NULL DEFAULT FALSE
       - agreement_version    VARCHAR(120) NULL
       - enrollment_status    VARCHAR(50) NOT NULL DEFAULT 'pending'
@@ -105,15 +154,35 @@ def _migrate_course_registrations(inspector, conn) -> None:
       - google_drive_status      VARCHAR(50) NULL DEFAULT 'pending'
       - paid_at              DATETIME NULL
 
+    Phase B — FIX incorrect NOT NULL constraints
+    ---------------------------------------------
+    These columns were legitimately nullable in the model from the start but
+    the production table may have been created with them as NOT NULL (by an
+    older migration or an older create_all() pass):
+
+      razorpay_order_id    VARCHAR(80) NULL   (NULL before order is created)
+      razorpay_payment_id  VARCHAR(80) NULL   (NULL before payment)
+      razorpay_signature   VARCHAR(128) NULL  (NULL before payment)
+      utr                  VARCHAR(100) NULL  (NULL before payment)
+      paid_at              DATETIME NULL      (NULL before payment)
+
+    This is the root cause of:
+      IntegrityError: (1048, "Column 'razorpay_order_id' cannot be null")
+
     Core columns present in the original table (not migrated):
       id, registration_id, full_name, email, phone, referral_id,
       course_id, course_slug, course_title, amount,
-      razorpay_order_id, razorpay_payment_id, payment_status, created_at
+      payment_status, created_at
     """
     table = "course_registrations"
-    ex = _existing_columns(inspector, table)
+    info = _column_info(inspector, table)   # {name: col_dict} — for nullability checks
+    ex   = set(info.keys())                 # set of names — for existence checks
 
-    # ── Razorpay extended fields ──────────────────────────────────────────
+    # ────────────────────────────────────────────────────────────────────────
+    # Phase A — ADD COLUMN (only when the column does not yet exist)
+    # ────────────────────────────────────────────────────────────────────────
+
+    # Razorpay extended fields
     _add_column(conn, ex, table, "razorpay_signature",
         f"ALTER TABLE {table} ADD COLUMN razorpay_signature VARCHAR(128) NULL"
     )
@@ -121,7 +190,7 @@ def _migrate_course_registrations(inspector, conn) -> None:
         f"ALTER TABLE {table} ADD COLUMN utr VARCHAR(100) NULL"
     )
 
-    # ── Agreement fields (v2) ─────────────────────────────────────────────
+    # Agreement fields (v2)
     _add_column(conn, ex, table, "agreement_accepted",
         f"ALTER TABLE {table} ADD COLUMN agreement_accepted BOOLEAN NOT NULL DEFAULT FALSE"
     )
@@ -129,13 +198,12 @@ def _migrate_course_registrations(inspector, conn) -> None:
         f"ALTER TABLE {table} ADD COLUMN agreement_version VARCHAR(120) NULL"
     )
 
-    # ── Enrollment status (v2) ────────────────────────────────────────────
-    # NOT NULL with DEFAULT so existing rows get 'pending' automatically
+    # Enrollment status (v2) — NOT NULL with DEFAULT so existing rows get 'pending'
     _add_column(conn, ex, table, "enrollment_status",
         f"ALTER TABLE {table} ADD COLUMN enrollment_status VARCHAR(50) NOT NULL DEFAULT 'pending'"
     )
 
-    # ── Google Drive fields (v3, future-ready) ────────────────────────────
+    # Google Drive fields (v3, future-ready)
     _add_column(conn, ex, table, "google_drive_folder_id",
         f"ALTER TABLE {table} ADD COLUMN google_drive_folder_id VARCHAR(255) NULL"
     )
@@ -146,9 +214,42 @@ def _migrate_course_registrations(inspector, conn) -> None:
         f"ALTER TABLE {table} ADD COLUMN google_drive_status VARCHAR(50) NULL DEFAULT 'pending'"
     )
 
-    # ── Timestamp fields ──────────────────────────────────────────────────
+    # Timestamp fields
     _add_column(conn, ex, table, "paid_at",
         f"ALTER TABLE {table} ADD COLUMN paid_at DATETIME NULL"
+    )
+
+    # ────────────────────────────────────────────────────────────────────────
+    # Phase B — FIX nullability (MODIFY COLUMN only when currently NOT NULL)
+    #
+    # These five columns must be nullable because a registration starts without
+    # a Razorpay order and is only linked to a payment after the student pays.
+    # An older production schema may have them as NOT NULL, causing:
+    #   IntegrityError: (1048, "Column '...' cannot be null")
+    #
+    # MODIFY COLUMN preserves the existing UNIQUE index on each column.
+    # MySQL keeps indexes intact when the column name and type are unchanged.
+    # ────────────────────────────────────────────────────────────────────────
+
+    # Re-read info after Phase A in case columns were just added this run
+    # (they are added as NULL so the fix would be a no-op, but it is cleaner
+    # to re-inspect than to reason about ordering)
+    info = _column_info(inspector, table)
+
+    _fix_nullable(conn, info, table, "razorpay_order_id",
+        f"ALTER TABLE {table} MODIFY COLUMN razorpay_order_id VARCHAR(80) NULL"
+    )
+    _fix_nullable(conn, info, table, "razorpay_payment_id",
+        f"ALTER TABLE {table} MODIFY COLUMN razorpay_payment_id VARCHAR(80) NULL"
+    )
+    _fix_nullable(conn, info, table, "razorpay_signature",
+        f"ALTER TABLE {table} MODIFY COLUMN razorpay_signature VARCHAR(128) NULL"
+    )
+    _fix_nullable(conn, info, table, "utr",
+        f"ALTER TABLE {table} MODIFY COLUMN utr VARCHAR(100) NULL"
+    )
+    _fix_nullable(conn, info, table, "paid_at",
+        f"ALTER TABLE {table} MODIFY COLUMN paid_at DATETIME NULL"
     )
 
 

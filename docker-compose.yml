@@ -83,7 +83,7 @@ services:
 
       # ADMIN
       ADMIN_EMAIL: "axelpathofficial@gmail.com"
-      ADMIN_PASSWORD: "Ahemanth@143"
+      ADMIN_PASSWORD: "AxelPath@297"
 
       # RAZORPAY
       RAZORPAY_KEY_ID: ""
