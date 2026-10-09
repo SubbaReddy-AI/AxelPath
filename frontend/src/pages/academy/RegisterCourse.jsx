@@ -64,6 +64,7 @@ export default function RegisterCourse() {
   const [payment, setPayment] = useState(null);   // Razorpay order details
   const [utr, setUtr] = useState("");
   const [success, setSuccess] = useState(null);
+  const [paymentAmount, setPaymentAmount] = useState("");  // user-entered rupee amount (string)
 
   // ── UI state ────────────────────────────────────────────────────────────────
   const [loading, setLoading] = useState(false);
@@ -75,6 +76,10 @@ export default function RegisterCourse() {
     () => courses.find((c) => c.slug === form.course_slug) || courses[0],
     [form.course_slug]
   );
+
+  // Derived amount values
+  const amountRupees = (() => { const p = parseInt(paymentAmount, 10); return isNaN(p) ? NaN : p; })();
+  const isAmountValid = !isNaN(amountRupees) && amountRupees >= 1 && amountRupees <= 1000000;
 
   const currentStep = success
     ? 3
@@ -98,6 +103,14 @@ export default function RegisterCourse() {
     if (!form.email.trim()) { setError("Please enter your email address."); return false; }
     if (!form.phone.trim()) { setError("Please enter your phone number."); return false; }
     if (!form.course_slug) { setError("Please select a course."); return false; }
+    return true;
+  };
+
+  // Validate user-entered payment amount
+  const validateAmount = () => {
+    if (!paymentAmount.trim()) { setError("Please enter the payment amount."); return false; }
+    if (isNaN(amountRupees) || amountRupees <= 0) { setError("Please enter a valid positive amount."); return false; }
+    if (amountRupees > 1_000_000) { setError("Maximum payment amount is ₹10,00,000."); return false; }
     return true;
   };
 
@@ -140,14 +153,15 @@ export default function RegisterCourse() {
   // ── STEP 3 — Open Razorpay ────────────────────────────────────────────────
   const openRazorpay = async () => {
     if (!agreementAccepted || !registrationId) return;
+    if (!validateAmount()) return;
     setError("");
     setMessage("");
 
     try {
       setLoading(true);
 
-      // Create order on backend (verifies agreement server-side, returns NO amount)
-      const order = await createPaymentOrder(registrationId);
+      // Create order on backend (verifies agreement server-side; passes amount_rupees)
+      const order = await createPaymentOrder(registrationId, amountRupees);
       setPayment(order);
 
       await loadRazorpay();
@@ -422,18 +436,49 @@ export default function RegisterCourse() {
               <h2>Complete your enrollment</h2>
               <p>
                 Your agreement has been accepted and recorded.
-                Click below to open the secure Razorpay checkout.
-                The payment amount will be displayed inside Razorpay.
+                Enter the amount you wish to pay, then open the secure Razorpay checkout.
               </p>
+            </div>
+            {/* Amount input */}
+            <div className="utr-form" style={{ marginBottom: 0 }}>
+              <label style={{ display: "block", marginBottom: 6, fontWeight: 600, fontSize: "0.9rem" }}>
+                Payment Amount (INR) <b style={{ color: "#f76c5e" }}>*</b>
+              </label>
+              <div style={{ position: "relative" }}>
+                <span style={{
+                  position: "absolute", left: 14, top: "50%",
+                  transform: "translateY(-50%)", fontWeight: 700,
+                  fontSize: "1rem", color: "var(--text-muted, #aaa)", pointerEvents: "none"
+                }}>₹</span>
+                <input
+                  id="rc-amount-input"
+                  type="number"
+                  min="1"
+                  max="1000000"
+                  step="1"
+                  value={paymentAmount}
+                  onChange={(e) => { setPaymentAmount(e.target.value); setError(""); }}
+                  placeholder="Enter amount in rupees"
+                  style={{ paddingLeft: 30 }}
+                  autoComplete="off"
+                />
+              </div>
+              <small style={{ color: "var(--text-muted, #aaa)", fontSize: "0.78rem" }}>
+                Minimum ₹1 · Maximum ₹10,00,000
+              </small>
             </div>
             <button
               className="register-pay-button"
               onClick={openRazorpay}
-              disabled={loading}
+              disabled={loading || !isAmountValid}
               id="rc-pay-btn"
             >
               <CreditCard size={19} />
-              {loading ? "Opening secure checkout…" : "Pay with Razorpay"}
+              {loading
+                ? "Opening secure checkout…"
+                : isAmountValid
+                  ? `Pay ₹${amountRupees.toLocaleString("en-IN")} with Razorpay`
+                  : "Pay with Razorpay"}
               {!loading && <ArrowRight size={17} />}
             </button>
             {error && <div className="register-error" style={{ marginTop: 12 }}>{error}</div>}

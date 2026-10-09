@@ -9,11 +9,14 @@ export const initCourseRegistration = (payload) =>
 
 /**
  * STEP 3 — Create Razorpay order after agreement is accepted.
- * Returns razorpay_order_id + razorpay_key_id (NO amount).
+ * @param {string} registrationId
+ * @param {number} amountRupees — amount entered by the student (INR, integer rupees)
+ * Returns razorpay_order_id + razorpay_key_id.
  */
-export const createPaymentOrder = (registrationId) =>
+export const createPaymentOrder = (registrationId, amountRupees) =>
   apiClient.post("/course-registrations/create-order", {
     registration_id: registrationId,
+    amount_rupees: amountRupees,
   });
 
 /**

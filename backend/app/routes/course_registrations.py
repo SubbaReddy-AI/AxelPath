@@ -15,8 +15,10 @@ POST /course-registrations/start           — kept for older frontends
 
 Security invariants (enforced server-side, never trusted from the client)
 --------------------------------------------------------------------------
-- Registration fee is FIXED at ₹8,550 / 855,000 paise.
-- Amount is validated against the Razorpay API response after capture.
+- Payment amount is supplied by the student and validated server-side:
+    * Must be a positive integer (rupees), minimum ₹1, maximum ₹10,00,000.
+    * Stored on the registration row at order-creation time.
+    * Cross-checked against Razorpay API response at verification.
 - HMAC-SHA256 signature is verified before any payment is accepted.
 - UTR uniqueness is enforced at DB level (unique index) and application level.
 - Webhook signatures are verified with RAZORPAY_WEBHOOK_SECRET.
@@ -63,10 +65,10 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/course-registrations", tags=["Course Registrations"])
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Fixed fee — server-side only; NEVER trust the frontend amount
+# Amount bounds — validated server-side when the student submits their amount
 # ──────────────────────────────────────────────────────────────────────────────
-COURSE_REGISTRATION_FEE_RUPEES = 8550      # ₹8,550
-COURSE_REGISTRATION_FEE_PAISE  = 855_000   # 855,000 paise
+_AMOUNT_MIN_RUPEES = 1           # ₹1 minimum
+_AMOUNT_MAX_RUPEES = 1_000_000   # ₹10,00,000 maximum
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -208,7 +210,7 @@ def init_registration(
         course_id=course.id,
         course_slug=course.slug,
         course_title=course.title,
-        amount=COURSE_REGISTRATION_FEE_RUPEES,
+        amount=0,           # updated at create-order time with the student's chosen amount
         payment_status="pending_agreement",
         agreement_accepted=False,
         enrollment_status="pending",
@@ -248,9 +250,10 @@ def create_payment_order(
       - Registration must exist.
       - Agreement must have been accepted (checked in agreement_acceptances table).
       - No successful payment may already exist.
+      - Amount (rupees) must be within the allowed range (_AMOUNT_MIN_RUPEES.._AMOUNT_MAX_RUPEES).
 
-    The payment amount is FIXED at ₹8,550 server-side.
-    The amount is NOT returned in this response — Razorpay Checkout reads it
+    The student-supplied amount is validated here, stored on the registration row,
+    and used to create the Razorpay order. Razorpay Checkout reads the amount
     from the order object directly via the order_id.
     """
     registration = (
@@ -296,6 +299,17 @@ def create_payment_order(
         registration.agreement_accepted = True
         registration.agreement_version = acceptance.agreement_version
 
+    # Validate the student-supplied amount server-side
+    amount_rupees = payload.amount_rupees
+    if not (_AMOUNT_MIN_RUPEES <= amount_rupees <= _AMOUNT_MAX_RUPEES):
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Payment amount must be between ₹{_AMOUNT_MIN_RUPEES:,} "
+                f"and ₹{_AMOUNT_MAX_RUPEES:,}."
+            ),
+        )
+
     # Reuse an existing open order (idempotent re-submission)
     if (
         registration.razorpay_order_id
@@ -314,10 +328,10 @@ def create_payment_order(
             razorpay_key_id=settings.RAZORPAY_KEY_ID,
         )
 
-    # Create a new Razorpay order — amount is ALWAYS the server-side constant
+    # Create a new Razorpay order using the student-supplied amount
     try:
         order = create_order(
-            amount_rupees=COURSE_REGISTRATION_FEE_RUPEES,
+            amount_rupees=amount_rupees,
             receipt=registration.registration_id,
             notes={
                 "registration_id": registration.registration_id,
@@ -339,6 +353,8 @@ def create_payment_order(
             detail="Unable to create the payment order. Please try again.",
         ) from exc
 
+    # Persist the chosen amount on the registration row
+    registration.amount = amount_rupees
     registration.razorpay_order_id = order["id"]
     registration.payment_status = "order_created"
     db.commit()
@@ -372,7 +388,7 @@ def verify_registration_payment(
       2. UTR is provided, non-empty, and not already used.
       3. HMAC-SHA256 signature matches (key_secret × order_id|payment_id).
       4. Razorpay API confirms payment is captured.
-      5. Razorpay API confirms amount = 855,000 paise (₹8,550).
+      5. Razorpay API confirms amount matches the stored registration amount.
       6. UTR matches a reference value returned by Razorpay (when available).
 
     Idempotent: returns success immediately if already paid.
@@ -463,22 +479,23 @@ def verify_registration_payment(
             detail="Payment is not linked to this registration order.",
         )
 
-    # 5. Amount must match the server-side fixed value (paise)
+    # 5. Amount must match the registration's stored amount (converted to paise)
+    expected_paise = int(registration.amount) * 100
     try:
         razorpay_amount = int(payment.get("amount", 0))
     except (TypeError, ValueError):
         razorpay_amount = 0
 
-    if razorpay_amount != COURSE_REGISTRATION_FEE_PAISE:
+    if razorpay_amount != expected_paise:
         logger.error(
-            "Amount mismatch | registration_id=%s expected=%s got=%s",
+            "Amount mismatch | registration_id=%s expected_paise=%s got=%s",
             registration.registration_id,
-            COURSE_REGISTRATION_FEE_PAISE,
+            expected_paise,
             razorpay_amount,
         )
         raise HTTPException(
             status_code=400,
-            detail="Payment amount does not match the programme fee.",
+            detail="Payment amount does not match the registered amount.",
         )
 
     # 5b. Payment status must be 'captured'
@@ -621,12 +638,13 @@ async def razorpay_webhook(request: Request, db: Session = Depends(get_db)):
             )
             return {"status": "already_processed"}
 
-        # Amount guard — reject if tampered
-        if captured_amount != COURSE_REGISTRATION_FEE_PAISE:
+        # Amount guard — compare against the stored registration amount (paise)
+        expected_paise = int(registration.amount) * 100
+        if captured_amount != expected_paise:
             logger.error(
-                "Webhook: amount mismatch | order_id=%s expected=%s got=%s",
+                "Webhook: amount mismatch | order_id=%s expected_paise=%s got=%s",
                 order_id,
-                COURSE_REGISTRATION_FEE_PAISE,
+                expected_paise,
                 captured_amount,
             )
             return {"status": "ignored", "reason": "amount mismatch"}
@@ -667,60 +685,22 @@ def start_registration(
     db: Session = Depends(get_db),
 ):
     """
-    Legacy endpoint — creates registration + Razorpay order in one step.
-    New frontend uses /init → /agreements/accept → /create-order.
+    Legacy endpoint — superseded by /init → /agreements/accept → /create-order.
 
-    NOTE: If Razorpay order creation fails, this endpoint returns 502 without
-    persisting a DB row (order is created first to avoid orphaned records).
+    This endpoint is no longer active.  It previously created a registration +
+    Razorpay order in one step with a fixed fee, but that fixed fee has been
+    removed.  Callers must migrate to the current three-step flow so that the
+    student can supply the payment amount explicitly.
+
+    Returns HTTP 410 Gone to signal deprecation without creating a zero-value
+    Razorpay order or an orphaned DB row.
     """
-    course = _get_active_course(db, payload.course_slug)
-
-    registration_id = _make_registration_id()
-
-    # Create the Razorpay order BEFORE inserting the DB row so that a failure
-    # here does not leave an orphaned registration with no order.
-    try:
-        order = create_order(
-            amount_rupees=COURSE_REGISTRATION_FEE_RUPEES,
-            receipt=registration_id,
-            notes={
-                "registration_id": registration_id,
-                "course_slug": course.slug,
-            },
-        )
-    except RuntimeError as exc:
-        logger.error("Razorpay credentials missing (legacy /start): %s", exc)
-        raise HTTPException(
-            status_code=503,
-            detail="Payment service is not configured. Please contact support.",
-        ) from exc
-    except Exception as exc:
-        logger.error("Razorpay order creation failed (legacy /start): %s", exc)
-        raise HTTPException(
-            status_code=502,
-            detail="Unable to create the Razorpay payment order. Please try again.",
-        ) from exc
-
-    registration = CourseRegistration(
-        registration_id=registration_id,
-        full_name=payload.full_name.strip(),
-        email=str(payload.email).lower(),
-        phone=payload.phone.strip(),
-        referral_id=payload.referral_id.strip() if payload.referral_id else None,
-        course_id=course.id,
-        course_slug=course.slug,
-        course_title=course.title,
-        amount=COURSE_REGISTRATION_FEE_RUPEES,
-        razorpay_order_id=order["id"],
-        payment_status="order_created",
-    )
-    db.add(registration)
-    db.commit()
-
-    return RegistrationStartResponse(
-        registration_id=registration_id,
-        course_title=course.title,
-        currency="INR",
-        razorpay_order_id=order["id"],
-        razorpay_key_id=settings.RAZORPAY_KEY_ID,
+    raise HTTPException(
+        status_code=410,
+        detail=(
+            "This endpoint is no longer supported. "
+            "Please use POST /course-registrations/init → "
+            "POST /agreements/accept → "
+            "POST /course-registrations/create-order."
+        ),
     )

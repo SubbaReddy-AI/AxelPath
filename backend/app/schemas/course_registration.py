@@ -28,6 +28,11 @@ class RegistrationInitResponse(BaseModel):
 
 class CreateOrderRequest(BaseModel):
     registration_id: str
+    amount_rupees: int = Field(
+        ge=1,
+        le=1_000_000,
+        description="Payment amount in Indian Rupees (₹1 – ₹10,00,000).",
+    )
 
 
 class CreateOrderResponse(BaseModel):
@@ -36,7 +41,7 @@ class CreateOrderResponse(BaseModel):
     currency: str
     razorpay_order_id: str
     razorpay_key_id: str
-    # NOTE: amount is intentionally omitted — Razorpay Checkout shows it
+    # NOTE: amount in paise is embedded in the Razorpay order — Checkout shows it
 
 
 # ──────────────────────────────────────────
